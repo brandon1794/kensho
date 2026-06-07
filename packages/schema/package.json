@@ -1,6 +1,6 @@
 {
   "name": "@kaizenreport/kensho-schema",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Kensho v1 JSON schema + lightweight validator. Canonical test-result format for the Kensho report and KaizenReport platform.",
   "type": "module",
   "main": "index.js",

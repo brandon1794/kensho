@@ -1,6 +1,6 @@
 {
   "name": "@kaizenreport/kensho-detox",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Kensho adapter for Detox (React Native E2E) — Jest reporter that captures Detox device + app metadata and emits kensho-results/.",
   "type": "module",
   "main": "index.js",

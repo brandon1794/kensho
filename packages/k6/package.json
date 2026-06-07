@@ -1,6 +1,6 @@
 {
   "name": "@kaizenreport/kensho-k6",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Kensho summary helper for k6 — turns k6's handleSummary(data) into Kensho v1 results.",
   "type": "module",
   "main": "dist/index.js",

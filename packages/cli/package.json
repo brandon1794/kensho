@@ -1,6 +1,6 @@
 {
   "name": "@kaizenreport/kensho",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Kensho CLI — read kensho-results/, generate a beautiful static test report, optionally upload to the KaizenReport platform.",
   "type": "module",
   "bin": {

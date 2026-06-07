@@ -1,6 +1,6 @@
 {
   "name": "newman-reporter-kensho",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Kensho reporter for Newman — turns Postman collection runs into kensho-results/ for the Kensho CLI. (Published for Newman's reporter discovery; the canonical name is @kaizenreport/kensho-newman.)",
   "keywords": [
     "newman",

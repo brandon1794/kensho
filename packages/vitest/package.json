@@ -1,6 +1,6 @@
 {
   "name": "@kaizenreport/kensho-vitest",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Kensho reporter for Vitest — writes kensho-results/ so the Kensho CLI can generate a rich HTML report.",
   "type": "module",
   "main": "index.js",

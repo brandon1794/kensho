@@ -1,6 +1,6 @@
 {
   "name": "@kaizenreport/kensho-appium",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Kensho adapter for Appium — WebdriverIO reporter and generic Node hook that emit kensho-results/ for cross-platform mobile (iOS + Android) test runs.",
   "type": "module",
   "main": "index.js",

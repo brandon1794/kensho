@@ -1,6 +1,6 @@
 {
   "name": "@kaizenreport/kensho-viewer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Static HTML/JS/CSS viewer bundled by the Kensho CLI into each generated report. Also exports an embeddable React component for the Kaizen platform.",
   "type": "module",
   "main": "index.html",
