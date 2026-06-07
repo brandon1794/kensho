@@ -84,7 +84,7 @@ To also ship `kensho-robot`, add a second `pypi-robot` job pointing at
 
 ## Maven Central — junit5, testng, cucumber-jvm (`release-maven.yml`, manual)
 
-The 3 poms (`groupId com.kaizenreport`) carry a `release` profile (sources +
+The 3 poms (`groupId com.kaizenreports`) carry a `release` profile (sources +
 javadoc + GPG sign + Central Portal plugin). `release-maven.yml` runs
 `mvn -Prelease deploy` for each. Maven Central has **no OIDC**, so this is a
 **manual** workflow (Actions tab → "Release (Maven Central)" → Run) gated on
@@ -93,8 +93,8 @@ npm/PyPI release.
 
 One-time setup (account owner):
 1. **Verify the namespace.** central.sonatype.com → Namespaces → add
-   `com.kaizenreport` → verify via the **DNS TXT** record it gives you on
-   `kaizenreport.com` (you own the domain).
+   `com.kaizenreports` → verify via the **DNS TXT** record it gives you on
+   `kaizenreports.com` (you own it, DNS on Cloudflare).
 2. **GPG key.** `gpg --gen-key`; publish the public key:
    `gpg --keyserver keyserver.ubuntu.com --send-keys <KEYID>`. Export the private
    key: `gpg --armor --export-secret-keys <KEYID>`.
