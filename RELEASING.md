@@ -117,16 +117,18 @@ One-time setup:
 2. `gh secret set NUGET_API_KEY --repo brandon1794/kensho`
 3. Actions → **Release (NuGet)** → Run.
 
-## RubyGems (Ruby) — `release-rubygems.yml` (manual)
+## RubyGems (Ruby) — `release-rubygems.yml` (manual, Trusted Publishing)
 
-Publishes `kensho-rspec`, `kensho-cucumber-ruby`. API-key based, manual.
+Publishes `kensho-rspec`, `kensho-cucumber-ruby` via **OIDC trusted publishing**
+(no API key, no MFA hassle).
 
-One-time setup:
-1. rubygems.org → **Settings → API Keys → New** (scope: push rubygem).
-2. `gh secret set RUBYGEMS_API_KEY --repo brandon1794/kensho`
-3. If your account enforces MFA for API/gem signin, set each gem's MFA level to
-   "UI only" (or use an API key permitted to push). Then Actions → **Release
-   (RubyGems)** → Run.
+One-time setup — add a **Pending Trusted Publisher** for EACH gem
+(rubygems.org → Trusted Publishers → Create):
+- Gem name `kensho-rspec` · Repository `brandon1794/kensho` · Workflow
+  `release-rubygems.yml` · Environment (blank)
+- Repeat for `kensho-cucumber-ruby`.
+
+Then Actions → **Release (RubyGems)** → Run. No secret needed.
 
 > Both are untested in CI until the keys exist — first run may need a small tweak
 > (same as Maven). Versions are bumped to 0.1.1 to match the other ecosystems.

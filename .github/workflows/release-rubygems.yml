@@ -1,12 +1,13 @@
-# Release — publishes the Ruby adapters to RubyGems.org.
+# Release — publishes the Ruby adapters to RubyGems.org via Trusted Publishing.
 #
-# Manual trigger (workflow_dispatch). Uses a RubyGems API key.
+# Manual trigger (workflow_dispatch). Uses OIDC (no API key, no MFA hassle).
 #
-# One-time setup: rubygems.org → Settings → API Keys → New (scope: push rubygem)
-# → copy the key, then:
-#   gh secret set RUBYGEMS_API_KEY --repo brandon1794/kensho
-# (If your RubyGems account has MFA "UI and API/gem signin" enforced, set the
-#  gem's MFA level to "UI only" or use an API key allowed for pushes.)
+# One-time setup on rubygems.org — add a **Pending Trusted Publisher** for EACH
+# gem (rubygems.org → the gem / your profile → Trusted Publishers → Create):
+#   Gem name:        kensho-rspec        (then repeat for kensho-cucumber-ruby)
+#   Repository:      brandon1794/kensho
+#   Workflow:        release-rubygems.yml
+#   Environment:     (leave blank)
 
 name: Release (RubyGems)
 
@@ -15,6 +16,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write # OIDC for RubyGems Trusted Publishing
 
 jobs:
   rubygems:
@@ -25,16 +27,15 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
+      - name: Configure RubyGems credentials (OIDC trusted publishing)
+        uses: rubygems/configure-rubygems-credentials@v1
       - name: Build + push gems
-        env:
-          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
         run: |
           set -e
           for dir in packages/rspec packages/cucumber-ruby; do
             echo "::group::$dir"
             cd "$dir"
-            gemspec=$(ls ./*.gemspec)
-            gem build "$gemspec"
+            gem build ./*.gemspec
             gem push ./*.gem
             cd - >/dev/null
             echo "::endgroup::"
