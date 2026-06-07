@@ -7,3 +7,6 @@ kensho-diff/
 dist/.cache/
 # checked-in fixtures stay tracked (adapters whose runtime isn't on every box)
 !**/fixtures/kensho-results/**
+
+# internal release runbook — not for the public repo
+RELEASING.md
