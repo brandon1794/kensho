@@ -1,4 +1,14 @@
 packages:
-  - 'packages/*'
-  - 'examples/*'
-  - 'integrations/vscode'
+  - packages/*
+  - examples/*
+  - integrations/vscode
+
+overrides:
+  brace-expansion@>=5.0.0 <5.0.6: '>=5.0.6'
+  diff@>=6.0.0 <8.0.3: '>=8.0.3'
+  qs@>=6.11.1 <=6.15.1: '>=6.15.2'
+  serialize-javascript@<=7.0.2: '>=7.0.3'
+  serialize-javascript@>=5.0.0 <7.0.5: '>=7.0.5'
+  systeminformation@>=4.17.0 <=5.31.5: '>=5.31.6'
+  tmp@<0.2.6: '>=0.2.6'
+  uuid@<11.1.1: '>=11.1.1'
