@@ -6,6 +6,7 @@ using System.Reflection;
 using KaizenReport.Kensho.Core;
 using NUnit.Framework;
 using NUnit.Framework.Interfaces;
+using NUnit.Framework.Internal;
 using KenshoApi = KaizenReport.Kensho.Core.Kensho;
 
 namespace KaizenReport.Kensho.NUnit;
@@ -192,18 +193,8 @@ internal sealed class KenshoNUnitState
             }
         }
 
-        // Capture stdout/stderr that NUnit attached to this test result.
-        var stdout = ctx?.Result?.Output;
-        if (!string.IsNullOrWhiteSpace(stdout))
-        {
-            c.Logs ??= new List<KenshoLog>();
-            foreach (var line in stdout!.Split('\n'))
-            {
-                var trimmed = line.TrimEnd('\r');
-                if (string.IsNullOrEmpty(trimmed)) continue;
-                c.Logs.Add(new KenshoLog { T = 0, Level = "info", Msg = trimmed });
-            }
-        }
+        // (NUnit's ResultAdapter exposes no captured-output API, so step/label/
+        //  link metadata is collected above; raw stdout capture is omitted.)
 
         _writer.AddCase(c);
         KenshoApi.SetCurrent(null);
