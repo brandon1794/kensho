@@ -47,6 +47,10 @@ jobs:
   pypi-robot:
     name: Publish kensho-robot
     runs-on: ubuntu-latest
+    # Non-blocking: kensho-robot's PyPI trusted publisher isn't set up yet, so a
+    # failure here must NOT fail the release (pytest + the npm packages still
+    # ship). Remove this line once the kensho-robot pending publisher exists.
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
