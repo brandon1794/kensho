@@ -9,11 +9,12 @@
     <NoWarn>$(NoWarn);CS1591</NoWarn>
 
     <PackageId>KaizenReport.Kensho.Core</PackageId>
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
     <Authors>KaizenReport</Authors>
     <Company>KaizenReport</Company>
     <Description>Shared core for the Kensho .NET adapters: schema POCOs, helper API (Kensho.Step / Attach / Label / Link), stable case-id hash, env capture, and JSON writer.</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/brandon1794/kensho</PackageProjectUrl>
     <RepositoryUrl>https://github.com/brandon1794/kensho</RepositoryUrl>
     <PackageTags>kensho;kaizenreport;testing;test-report;reporter</PackageTags>
@@ -23,4 +24,7 @@
     <PackageReference Include="System.Text.Json" Version="6.0.10" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 </Project>

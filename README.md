@@ -1,43 +1,59 @@
+<div align="center">
+
 # Kensho — 検証
 
-**Open-source test report generator. Apache-2.0. Part of the KaizenReport platform.**
+**Beautiful, framework-agnostic test reports. Open source. Zero config. No server.**
 
-Inspired by Allure Report, Playwright HTML report, and Cucumber Report — combines the best of all three and adds what none of them have:
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
+[![CI](https://github.com/brandon1794/kensho/actions/workflows/ci.yml/badge.svg)](https://github.com/brandon1794/kensho/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/@kaizenreport/kensho?label=npm)](https://www.npmjs.com/package/@kaizenreport/kensho)
+[![PyPI](https://img.shields.io/pypi/v/kensho-pytest?label=pypi)](https://pypi.org/project/kensho-pytest/)
+[![Node](https://img.shields.io/badge/node-%E2%89%A522-success)](https://nodejs.org)
 
-- **Beautiful.** Sidebar layout, mosaic overview widgets, dark mode, polished typography.
-- **Fast.** Viewer is pure vanilla JS, no framework — boots in <100 ms even with 10k+ tests.
-- **Framework-agnostic.** Canonical [Kensho v1](./packages/schema/schema.json) format. One format, every language.
-- **Customizable.** Drop a `kensho.config.json` next to your results to rebrand, hide tabs, set accent color, register failure categories.
-- **Real steps.** Nested step trees with Setup / Test body / Tear down grouping, per-step logs + attachments + parameters.
-- **History + retries** as top-level detail tabs on every test case.
-- **Dogfoodable.** Install → run tests → `kensho generate` → open. No server, no account.
+</div>
 
-## Packages
+> **検証 (kenshō)** — "verification." Kensho turns the results of *any* test framework into a single, self-contained, beautiful HTML report — the way [Allure](https://github.com/allure-framework/allure2) does, but with one canonical format across every language, a zero-dependency viewer, and nothing to run on a server.
 
-| Package | Purpose |
-|---|---|
-| [`@kaizenreport/kensho-schema`](./packages/schema) | Canonical JSON Schema + TS types + validator. |
-| [`@kaizenreport/kensho-playwright`](./packages/playwright) | Playwright reporter. Writes `kensho-results/`. |
-| [`@kaizenreport/kensho-go`](./packages/go) | Convert `go test -json` → `kensho-results/` (+ optional Go helper module for steps/attachments). |
-| [`kensho-pytest`](./packages/pytest) | pytest plugin (Python). |
-| [`kensho-robot`](./packages/robot) | Robot Framework Listener v3 (Python). |
-| [`@kaizenreport/kensho`](./packages/cli) | CLI: `generate` · `open` · `validate`. |
-| [`@kaizenreport/kensho-viewer`](./packages/viewer) | Static HTML + JS + CSS viewer copied into every report. |
+---
 
-## Try the demo
+## Why Kensho?
 
-```bash
-pnpm install
-cd examples/playwright-demo
-pnpm run demo   # seed → generate → open
+Test runners each ship their own half-baked HTML output, and none of them agree. If your stack is polyglot (Playwright + pytest + JUnit + …), you get a different report per tool and no shared story. The hosted alternatives lock that story behind an account.
+
+Kensho fixes that with **one open format** and **one viewer**:
+
+- 🎯 **One format, every language.** 24 adapters all emit the canonical [Kensho v1](./packages/schema/schema.json) JSON. Same report whether your tests are TypeScript, Python, Java, C#, Ruby, or Go.
+- ⚡ **Fast + self-contained.** The viewer is a static SPA — boots in well under a second on 10k+ tests. The report is just a folder: open it locally, drop it on S3, attach it to CI. No server, no database, no API key.
+- 🪜 **Real test structure.** Nested step trees (setup / body / teardown), per-step logs, attachments (screenshots, videos, traces), parameters, links, and labels.
+- 🔁 **Retries, flaky signal, history & behaviors** as first-class tabs — derived from a single run (no multi-run backend required).
+- 🎨 **Customizable.** Drop a `kensho.config.json` to rebrand, set an accent color, hide tabs, or register failure categories.
+- 🆓 **Apache-2.0.** Use it, fork it, ship it. Nothing phones home.
+
+## How it works
+
+```mermaid
+flowchart LR
+  A["Your tests<br/>(Playwright · pytest · JUnit · NUnit · RSpec · go test · …)"]
+  A -->|Kensho adapter| B["kensho-results/<br/>run.json + cases/*.json + attachments/"]
+  B -->|npx kensho generate| C["kensho-report/<br/>self-contained static HTML"]
+  C -->|npx kensho open| D["🌐 Browser"]
+  B -. optional .-> E[("KaizenReports platform<br/>multi-run history · triage · flaky boards · AI")]
 ```
 
-Opens a full Kensho report in your browser with 10 realistic test cases — pass, fail, skip, with screenshots, traces, logs, assertion diffs. No Playwright browsers required.
+The adapter is the only piece that touches your test run; everything after the `kensho-results/` folder is identical for every framework.
 
-## Install in your project
+## Quick start
 
 ```bash
+# 1. add the adapter for your framework + the CLI (example: Playwright)
 pnpm add -D @kaizenreport/kensho-playwright @kaizenreport/kensho
+
+# 2. run your tests (the adapter writes kensho-results/)
+npx playwright test
+
+# 3. generate + open the report
+npx kensho generate
+npx kensho open
 ```
 
 ```ts
@@ -45,64 +61,136 @@ pnpm add -D @kaizenreport/kensho-playwright @kaizenreport/kensho
 export default {
   reporter: [
     ['line'],
-    ['@kaizenreport/kensho-playwright', {
-      output: 'kensho-results',
-      project: { name: 'My App', slug: 'my-app' },
-      severityFromTag: true,
-    }],
+    ['@kaizenreport/kensho-playwright', { output: 'kensho-results', project: { name: 'My App', slug: 'my-app' } }],
   ],
 };
 ```
 
+Other ecosystems:
+
 ```bash
-npx playwright test
-npx kensho generate
-npx kensho open
+pip install kensho-pytest                       # Python / pytest
+gem install kensho-rspec                        # Ruby / RSpec
+dotnet add package KaizenReport.Kensho.NUnit    # .NET / NUnit
+# Java (Maven):  com.kaizenreports:kensho-junit5:0.1.1
 ```
+
+Want to see it first? Run the bundled demo (no browsers needed):
+
+```bash
+pnpm install && cd examples/playwright-demo && pnpm run demo   # seed → generate → open
+```
+
+## CLI
+
+```
+npx kensho <command>
+```
+
+| Command | What it does |
+|---|---|
+| `generate` | `kensho-results/` → a self-contained `kensho-report/` static site |
+| `open` | Serve the report locally (traversal-protected) + open the browser |
+| `validate` | Check a results dir against the Kensho v1 schema |
+| `diff <prev> <cur>` | Terminal punch-list of new failures/fixes + optional static diff site |
+| `badge` | Emit an SVG status badge from a run |
+| `version` | Print the CLI + schema version |
+
+`generate` also resolves test-file owners from `.github/CODEOWNERS` (`--codeowners` / `--no-codeowners`).
+
+## Adapters
+
+Every adapter writes the same `kensho-results/` shape, so the report and CLI behave identically.
+
+### JavaScript / TypeScript — npm (`@kaizenreport/*`)
+| Framework | Package |
+|---|---|
+| Playwright | `@kaizenreport/kensho-playwright` |
+| Cypress | `@kaizenreport/kensho-cypress` |
+| Jest | `@kaizenreport/kensho-jest` |
+| Vitest | `@kaizenreport/kensho-vitest` |
+| Cucumber.js | `@kaizenreport/kensho-cucumber-js` |
+| Jasmine | `@kaizenreport/kensho-jasmine` |
+| Postman / Newman | `newman-reporter-kensho` |
+| k6 (load) | `@kaizenreport/kensho-k6` |
+| Appium (WDIO) | `@kaizenreport/kensho-appium` |
+| Detox (React Native) | `@kaizenreport/kensho-detox` |
+| Go (`go test -json`) | `@kaizenreport/kensho-go` |
+| XCUITest (xcresult) | `@kaizenreport/kensho-xcuitest` |
+| Any JUnit XML | `@kaizenreport/kensho-junit-xml` |
+
+### Python — PyPI
+`kensho-pytest` (pytest) · `kensho-robot` (Robot Framework)
+
+### Java / JVM — Maven Central (`com.kaizenreports`)
+`kensho-junit5` · `kensho-testng` · `kensho-cucumber-jvm`
+
+### .NET — NuGet (`KaizenReport.Kensho.*`)
+`Core` · `NUnit` · `MSTest` · `Xunit`
+
+### Ruby — RubyGems
+`kensho-rspec` · `kensho-cucumber-ruby`
+
+**Core packages:** [`@kaizenreport/kensho`](./packages/cli) (CLI) · [`@kaizenreport/kensho-schema`](./packages/schema) (format) · [`@kaizenreport/kensho-viewer`](./packages/viewer) (viewer).
+
+## The Kensho v1 format
+
+A results directory is just JSON + files — easy to produce from any language:
+
+```
+kensho-results/
+├── run.json              # run metadata + totals + env (repo, branch, commit, CI)
+├── cases/
+│   └── tc_<id>.json      # one file per test: status, steps[], logs, links, labels, attachments
+└── attachments/
+    └── tc_<id>/...        # screenshots, videos, traces, etc.
+```
+
+```jsonc
+// cases/tc_775218feb1c579ac.json (trimmed)
+{
+  "id": "tc_775218feb1c579ac",
+  "name": "logs in with valid credentials",
+  "status": "pass",                       // pass | fail | skip | broken
+  "durationMs": 412,
+  "labels": { "feature": "auth", "severity": "critical" },
+  "steps": [{ "title": "fill login form", "status": "pass", "steps": [] }],
+  "attachments": [{ "name": "screenshot", "path": "...", "contentType": "image/png" }]
+}
+```
+
+- **Stable case IDs** — `stableCaseId(fullName, filePath)` (double FNV-1a) correlates the same test across runs.
+- Every step can carry its own `attachments`, `logs`, `parameters`, and nested `steps`.
+- `behavior.epic / feature / scenario` for BDD; `parameters` for data-driven tests.
+- All dates are ISO strings; all durations are integer milliseconds.
+
+Validate any dir with `npx kensho validate <dir>`. Full schema + TypeScript types: [`@kaizenreport/kensho-schema`](./packages/schema).
 
 ## Customize
 
-Drop `kensho.config.json` in your repo root:
+Drop a `kensho.config.json` in your repo root:
 
 ```json
 {
-  "brand": { "name": "Acme Test Report", "tagline": "QA", "accent": "#2563EB" },
-  "project": { "name": "Acme Web", "slug": "acme", "url": "https://github.com/acme/web" },
-  "tabs": {
-    "overview":    true,
-    "suites":      true,
-    "categories":  true,
-    "graphs":      true,
-    "timeline":    true,
-    "behaviors":   false,
-    "environment": true
-  },
+  "brand": { "name": "Acme Test Report", "accent": "#2563EB" },
+  "project": { "name": "Acme Web", "slug": "acme" },
+  "tabs": { "overview": true, "suites": true, "categories": true, "behaviors": false },
   "redact": ["^SECRET_", "TOKEN$"]
 }
 ```
 
-## Upload to KaizenReport (optional)
+## Viewer features
 
-```bash
-npx kensho upload --project acme-web --token $KR_TOKEN
-```
+Hash-routed deep links (`#/case/<id>`) · keyboard shortcuts (`?` overlay, `/` search, `j`/`k` nav, `g` chords) · Suites / Behaviors / Packages trees with a resizable splitter · Timeline · Flaky · History · Categories · real attachment rendering (image lightbox, `<video>`, typed downloads) · light/dark theme · one-click export. CSS is namespaced `kv-*` so it never collides with a host page.
 
-The platform gives you cross-run history, flakiness detection, failure clustering, team dashboards, Slack / Jira / GitHub integrations.
+## Kensho vs. the KaizenReports platform
 
-## Schema
+Kensho is the **free, single-run, static** half. Anything that needs *many* runs — history dashboards, regression alerts, flake rate over time, AI clustering, triage, RBAC — lives in the **[KaizenReports](https://kaizenreports.com)** platform, which ingests `kensho-results/`. The only "comparison" Kensho ships is the local-only `kensho diff`.
 
-Every reporter emits `kensho/v1` JSON. See [`packages/schema/schema.json`](./packages/schema/schema.json) for the full contract. Highlights:
+## Contributing
 
-- Stable case IDs (FNV-1a hash of `fullName + filePath`) correlate the same test across runs.
-- Every step can have its own `attachments`, `logs`, `network`, `parameters`, `children` (nested steps), `assertion`.
-- `parameters` on a case capture data-driven inputs (perfect for Cucumber scenario outlines + parameterized unit tests).
-- `behavior.epic / feature / scenario / gherkin` for BDD.
-- All dates ISO, all durations integer milliseconds.
-
-## Why "Kensho"?
-
-検証 means *verification* in Japanese — literally what test reports are for. Fits the Kaizen (改善, "continuous improvement") family.
+Issues and PRs welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) and our [Code of Conduct](./CODE_OF_CONDUCT.md). This is a pnpm workspace (Node ≥ 22): `pnpm install`, then `cd examples/playwright-demo && pnpm run demo`.
 
 ## License
 
-Apache-2.0.
+[Apache-2.0](./LICENSE) © KaizenReports.

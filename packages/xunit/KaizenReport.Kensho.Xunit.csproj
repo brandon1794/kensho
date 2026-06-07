@@ -8,11 +8,12 @@
     <NoWarn>$(NoWarn);CS1591</NoWarn>
 
     <PackageId>KaizenReport.Kensho.Xunit</PackageId>
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
     <Authors>KaizenReport</Authors>
     <Company>KaizenReport</Company>
     <Description>xUnit hook that emits the Kensho v1 JSON test-report format. Apply [KenshoTracked] at the assembly level (or extend KenshoTestBase) and the run.json + cases/*.json appear under kensho-results/ when the test run finishes.</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/brandon1794/kensho</PackageProjectUrl>
     <RepositoryUrl>https://github.com/brandon1794/kensho</RepositoryUrl>
     <PackageTags>kensho;kaizenreport;xunit;testing;test-report;reporter</PackageTags>
@@ -27,4 +28,7 @@
     <ProjectReference Include="..\dotnet-core\KaizenReport.Kensho.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 </Project>
