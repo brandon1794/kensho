@@ -6,7 +6,7 @@
 
   <groupId>com.kaizenreport</groupId>
   <artifactId>kensho-testng</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
   <packaging>jar</packaging>
 
   <name>kensho-testng</name>
@@ -29,9 +29,9 @@
   </developers>
 
   <scm>
-    <url>https://github.com/kaizenreport/kensho</url>
-    <connection>scm:git:https://github.com/kaizenreport/kensho.git</connection>
-    <developerConnection>scm:git:https://github.com/kaizenreport/kensho.git</developerConnection>
+    <url>https://github.com/brandon1794/kensho</url>
+    <connection>scm:git:https://github.com/brandon1794/kensho.git</connection>
+    <developerConnection>scm:git:https://github.com/brandon1794/kensho.git</developerConnection>
   </scm>
 
   <properties>
@@ -76,4 +76,60 @@
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <!-- Activated by the release workflow (`mvn -Prelease deploy`). Produces the
+         sources + javadoc jars and GPG signatures Maven Central requires, then
+         publishes via the Central Portal plugin. Normal builds/CI skip all this. -->
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.3.1</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals><goal>jar-no-fork</goal></goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.7.0</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals><goal>jar</goal></goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>3.2.4</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals><goal>sign</goal></goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>0.7.0</version>
+            <extensions>true</extensions>
+            <configuration>
+              <publishingServerId>central</publishingServerId>
+              <autoPublish>true</autoPublish>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

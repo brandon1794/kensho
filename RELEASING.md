@@ -82,14 +82,29 @@ npx kensho version
 To also ship `kensho-robot`, add a second `pypi-robot` job pointing at
 `packages/robot` and register a matching pending publisher for `kensho-robot`.
 
-## Maven Central — follow-up (junit5, testng, cucumber-jvm)
+## Maven Central — junit5, testng, cucumber-jvm (`release-maven.yml`, manual)
 
-`groupId` is `com.kaizenreport`. To ship:
-1. Register the namespace at central.sonatype.com and **verify it** via a DNS
-   TXT record on `kaizenreport.com` (you already own the domain).
-2. Create a GPG signing key, publish the public key to a keyserver, store the
-   private key + passphrase as CI secrets.
-3. Add a release job using the Central Publishing Maven Plugin (`mvn deploy`).
+The 3 poms (`groupId com.kaizenreport`) carry a `release` profile (sources +
+javadoc + GPG sign + Central Portal plugin). `release-maven.yml` runs
+`mvn -Prelease deploy` for each. Maven Central has **no OIDC**, so this is a
+**manual** workflow (Actions tab → "Release (Maven Central)" → Run) gated on
+real credentials — it's deliberately off the `v*` tag so it never fails the
+npm/PyPI release.
+
+One-time setup (account owner):
+1. **Verify the namespace.** central.sonatype.com → Namespaces → add
+   `com.kaizenreport` → verify via the **DNS TXT** record it gives you on
+   `kaizenreport.com` (you own the domain).
+2. **GPG key.** `gpg --gen-key`; publish the public key:
+   `gpg --keyserver keyserver.ubuntu.com --send-keys <KEYID>`. Export the private
+   key: `gpg --armor --export-secret-keys <KEYID>`.
+3. **Central Portal token.** central.sonatype.com → Account → Generate User Token.
+4. **Add repo secrets:** `CENTRAL_USERNAME`, `CENTRAL_PASSWORD` (the token),
+   `MAVEN_GPG_PRIVATE_KEY` (armored private key), `MAVEN_GPG_PASSPHRASE`.
+5. Bump the 3 pom `<version>`s, commit, then run the workflow from the Actions tab.
+
+> Untested in CI until those secrets exist — the GPG/passphrase wiring is the
+> usual fiddly part; first run may need a tweak.
 
 ## NuGet (.NET) / RubyGems (Ruby) — lower priority
 

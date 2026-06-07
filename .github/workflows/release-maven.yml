@@ -1,0 +1,51 @@
+# Release — publishes the JVM adapters to Maven Central (Central Portal).
+#
+# Manual trigger only (workflow_dispatch) — Maven Central does NOT support OIDC
+# trusted publishing, so this needs real credentials + a GPG key (see below).
+# It's intentionally NOT on the `v*` tag so it can't fail the npm/PyPI release
+# while those secrets are unset. Run it from the Actions tab once setup is done.
+#
+# One-time setup (see RELEASING.md → "Maven Central"):
+#   1. Verify the `com.kaizenreport` namespace on central.sonatype.com (DNS TXT
+#      on kaizenreport.com).
+#   2. Generate a GPG key; publish the public key to a keyserver.
+#   3. Add repo secrets:
+#        CENTRAL_USERNAME        – Central Portal user token (name)
+#        CENTRAL_PASSWORD        – Central Portal user token (secret)
+#        MAVEN_GPG_PRIVATE_KEY   – ASCII-armored private key (gpg --armor --export-secret-keys)
+#        MAVEN_GPG_PASSPHRASE    – the key's passphrase
+
+name: Release (Maven Central)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  maven-central:
+    name: Publish JVM adapters
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          server-id: central
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_PASSWORD
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+      - name: Deploy junit5, testng, cucumber-jvm
+        env:
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+        run: |
+          for d in kensho-junit5 kensho-testng kensho-cucumber-jvm; do
+            echo "::group::deploy $d"
+            mvn -B -Prelease -f "packages/$d/pom.xml" clean deploy
+            echo "::endgroup::"
+          done

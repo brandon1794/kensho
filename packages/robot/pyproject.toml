@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kensho-robot"
-version = "0.1.0"
+version = "0.1.1"
 description = "Kensho reporter for Robot Framework — writes kensho-results/ so the Kensho CLI can generate a rich HTML report."
 readme = "README.md"
 requires-python = ">=3.9"
