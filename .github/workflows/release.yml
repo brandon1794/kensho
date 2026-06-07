@@ -46,10 +46,13 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build the viewer (pre-bundled assets the CLI ships)
         run: pnpm --filter @kaizenreport/kensho-viewer run build
-      - name: Publish public packages (npm Trusted Publishing / OIDC)
-        # No NPM_TOKEN: authentication is via the workflow's OIDC id-token.
-        # Requires a Trusted Publisher configured on npm for EACH package
-        # (repository brandon1794/kensho, workflow file release.yml). Provenance
-        # is generated automatically under trusted publishing.
-        # NOTE: keep pnpm on 10.x — pnpm 11 has an OIDC publish regression.
+      - name: Publish public packages
+        # Token-based publish (NPM_TOKEN = granular token w/ 2FA bypass). We tried
+        # OIDC trusted publishing, but pnpm 10 doesn't perform the OIDC exchange —
+        # it falls back to the dummy token actions/setup-node writes and 404s. The
+        # trusted publishers configured on npm stay valid and harmless; revisit
+        # pure-OIDC when pnpm's support is reliable.
         run: pnpm --filter "./packages/**" publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: 'true'
