@@ -5,21 +5,24 @@ Kensho ships as packages on public registries so people can `pnpm add` /
 16 JS/TS packages + the `kensho` CLI + viewer), which is live and automated.
 PyPI and Maven Central are tracked at the bottom as follow-ups.
 
-## npm — one-time setup (account owner)
+## npm — one-time setup (Trusted Publishing / OIDC, no token)
 
-These need your npm identity and can't be scripted:
+`release.yml` publishes via **npm Trusted Publishing** — authentication is the
+workflow's OIDC id-token, so there is **no `NPM_TOKEN` to manage**. Setup, per
+package (npmjs.com → the package → **Settings → Trusted Publisher → GitHub
+Actions**):
 
-1. **Create the org.** On npmjs.com, create the `@kaizenreport` organization
-   (Free plan is fine for public packages). Every scoped package
-   (`@kaizenreport/kensho-*`) publishes under it; `newman-reporter-kensho` is
-   unscoped by convention (Postman's reporter naming) and just needs your account
-   to own the name.
-2. **Mint a token.** npmjs.com → Access Tokens → **Generate New Token →
-   Automation** (bypasses 2FA in CI). Copy it.
-3. **Add the CI secret.** GitHub repo → Settings → Secrets and variables →
-   Actions → New repository secret named **`NPM_TOKEN`**.
+- Organization or user: `brandon1794`
+- Repository: `kensho`
+- Workflow filename: `release.yml`
+- Environment: (leave blank)
 
-That's it — everything below is automated.
+Do this for all 16 packages (the 15 `@kaizenreport/kensho-*` + `newman-reporter-kensho`).
+Once configured you can delete any old `NPM_TOKEN` secret.
+
+**Constraint:** keep pnpm on **10.x** (`packageManager` pins `pnpm@10.28.0`) —
+pnpm 11 has an OIDC publish regression (404). Provenance is automatic under
+trusted publishing.
 
 ## npm — cutting a release
 
@@ -64,13 +67,20 @@ npx kensho version
 - **`files` whitelist** controls what ships. If you add a runtime file to a
   package, add it to that package's `package.json#files`.
 
-## PyPI — follow-up (pytest, robot)
+## PyPI — `kensho-pytest` (automated via `release-pypi.yml`)
 
-Packages exist (`kensho-pytest`, `kensho-robot`). To ship:
-1. Create the projects on PyPI (confirm the names are free first).
-2. Configure **Trusted Publishing** (OIDC) for this repo — no token to store.
-3. Add a `release-kensho-pypi.yml` that builds sdist+wheel (`python -m build`)
-   and publishes via `pypa/gh-action-pypi-publish` on the same tag.
+`release-pypi.yml` builds + publishes `kensho-pytest` on every `v*` tag via
+**Trusted Publishing** (OIDC, no token). One-time setup on PyPI (→ Publishing →
+**Add a pending publisher**):
+
+- PyPI Project Name: `kensho-pytest`
+- Owner: `brandon1794`
+- Repository name: `kensho`
+- Workflow name: `release-pypi.yml`
+- Environment: (leave blank)
+
+To also ship `kensho-robot`, add a second `pypi-robot` job pointing at
+`packages/robot` and register a matching pending publisher for `kensho-robot`.
 
 ## Maven Central — follow-up (junit5, testng, cucumber-jvm)
 
