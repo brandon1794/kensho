@@ -27,7 +27,6 @@ permissions:
   id-token: write # npm provenance attestations
 
 env:
-  PNPM_VERSION: 9
   NODE_VERSION: 22
 
 jobs:
@@ -36,9 +35,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # No version — read from package.json "packageManager" (pnpm@10.x).
       - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}

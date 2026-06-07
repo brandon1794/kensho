@@ -6,16 +6,15 @@ on:
 permissions:
   contents: read
 env:
-  PNPM_VERSION: 9
   NODE_VERSION: 22
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # No version here — pnpm/action-setup reads it from package.json's
+      # "packageManager" field (pnpm@10.x). Specifying both errors out.
       - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
