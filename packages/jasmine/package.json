@@ -1,0 +1,41 @@
+{
+  "name": "@kaizenreport/kensho-jasmine",
+  "version": "0.1.0",
+  "description": "Kensho reporter for Jasmine — writes kensho-results/ so the Kensho CLI can generate a rich HTML report.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "jasmine": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "jasmine": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@kaizenreport/kensho-schema": "workspace:*"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brandon1794/kensho.git",
+    "directory": "packages/jasmine"
+  },
+  "homepage": "https://github.com/brandon1794/kensho/tree/main/packages/jasmine#readme",
+  "bugs": {
+    "url": "https://github.com/brandon1794/kensho/issues"
+  }
+}

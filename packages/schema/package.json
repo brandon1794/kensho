@@ -1,0 +1,37 @@
+{
+  "name": "@kaizenreport/kensho-schema",
+  "version": "0.1.0",
+  "description": "Kensho v1 JSON schema + lightweight validator. Canonical test-result format for the Kensho report and KaizenReport platform.",
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js"
+    },
+    "./schema.json": "./schema.json"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "schema.json",
+    "README.md"
+  ],
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brandon1794/kensho.git",
+    "directory": "packages/schema"
+  },
+  "homepage": "https://github.com/brandon1794/kensho/tree/main/packages/schema#readme",
+  "bugs": {
+    "url": "https://github.com/brandon1794/kensho/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

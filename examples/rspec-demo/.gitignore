@@ -1,0 +1,5 @@
+/vendor/
+/kensho-results/
+/kensho-report/
+/.bundle/
+/Gemfile.lock

@@ -1,0 +1,74 @@
+{
+  "name": "kaizen-vscode",
+  "displayName": "Kaizen",
+  "description": "Send your latest Kensho test run to a Kaizen workspace from inside VS Code.",
+  "version": "0.1.0",
+  "private": true,
+  "_publisherTodo": "TODO: set `publisher` once we register a marketplace publisher account (kaizenreport).",
+  "engines": {
+    "vscode": "^1.85.0",
+    "node": ">=22"
+  },
+  "categories": [
+    "Testing",
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onCommand:kaizen.sendLastRun"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "kaizen.sendLastRun",
+        "title": "Kensho: Send last run to Kaizen",
+        "category": "Kaizen"
+      }
+    ],
+    "configuration": {
+      "title": "Kaizen",
+      "properties": {
+        "kaizen.kenshoResultsPath": {
+          "type": "string",
+          "default": "./kensho-results",
+          "description": "Workspace-relative path to the kensho-results/ directory written by your test reporter."
+        },
+        "kaizen.workspace": {
+          "type": "string",
+          "default": "",
+          "description": "Kaizen workspace slug (e.g. my-org)."
+        },
+        "kaizen.project": {
+          "type": "string",
+          "default": "",
+          "description": "Kaizen project slug (e.g. my-app)."
+        },
+        "kaizen.token": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Kaizen API token (`kz_…`). For real use, prefer storing the token via VS Code's secret storage — see the extension README. This setting is read as a fallback."
+        },
+        "kaizen.server": {
+          "type": "string",
+          "default": "https://api.kaizenreport.com",
+          "description": "Kaizen API base URL. Override for self-hosted."
+        },
+        "kaizen.kenshoVersion": {
+          "type": "string",
+          "default": "latest",
+          "description": "Version of @kaizenreport/kensho to invoke via npx."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -p . --watch",
+    "vscode:prepublish": "tsc -p ."
+  },
+  "devDependencies": {
+    "@types/node": "20.11.30",
+    "@types/vscode": "1.85.0",
+    "typescript": "5.4.5"
+  }
+}

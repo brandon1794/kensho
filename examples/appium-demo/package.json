@@ -1,0 +1,18 @@
+{
+  "name": "appium-demo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Example wdio + Appium project wired to the Kensho reporter. Includes a `seed` script that runs against a static fixture so the demo works without a real iOS simulator + Appium server.",
+  "scripts": {
+    "seed": "node scripts/seed-results.mjs",
+    "validate": "node ../../packages/cli/bin/kensho.js validate ./kensho-results",
+    "generate": "node ../../packages/cli/bin/kensho.js generate --input ./kensho-results --output ./kensho-report",
+    "open":     "node ../../packages/cli/bin/kensho.js open --report ./kensho-report",
+    "demo":     "pnpm run seed && pnpm run validate && pnpm run generate"
+  },
+  "dependencies": {
+    "@kaizenreport/kensho-appium": "workspace:*",
+    "@kaizenreport/kensho-schema": "workspace:*"
+  }
+}

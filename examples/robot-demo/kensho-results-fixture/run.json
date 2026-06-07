@@ -1,0 +1,696 @@
+{
+  "schemaVersion": "kensho/v1",
+  "id": "run_20260427083202",
+  "project": {
+    "name": "Unknown project",
+    "slug": "unknown-project"
+  },
+  "framework": {
+    "name": "robotframework",
+    "version": "7.4.2"
+  },
+  "env": {
+    "ci": "local",
+    "os": "darwin",
+    "arch": "arm64",
+    "pythonVersion": "3.9.6",
+    "osVersion": "25.4.0"
+  },
+  "startedAt": "2026-04-27T08:32:02.036Z",
+  "finishedAt": "2026-04-27T08:32:02.085Z",
+  "totals": {
+    "pass": 3,
+    "fail": 1,
+    "broken": 0,
+    "skip": 1
+  },
+  "durationMs": 49,
+  "testCases": [
+    {
+      "id": "tc_eb01f5b8a65b6bb6",
+      "name": "Login Happy Path",
+      "fullName": "Tests.Example.Login Happy Path",
+      "filePath": "tests/example.robot",
+      "suite": [
+        "Tests",
+        "Example"
+      ],
+      "tags": [
+        "demo"
+      ],
+      "status": "pass",
+      "startedAt": "2026-04-27T17:32:02.069Z",
+      "duration": 7,
+      "retries": 0,
+      "platform": "darwin",
+      "line": 11,
+      "severity": "critical",
+      "owner": "alice",
+      "labels": {
+        "team": "growth"
+      },
+      "links": [
+        {
+          "kind": "jira",
+          "url": "https://jira.example.com/browse/PROJ-123",
+          "label": "PROJ-123"
+        }
+      ],
+      "behavior": {
+        "epic": "User onboarding",
+        "feature": "Authentication"
+      },
+      "description": "Sign in with valid credentials lands the user on /home.",
+      "steps": [
+        {
+          "id": "step_kw_a1ff1ce2c8",
+          "title": "Open Login Page",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.069Z",
+          "duration": 3,
+          "phase": "body",
+          "children": [
+            {
+              "id": "step_kw_6b382becf3",
+              "title": "BuiltIn.Log",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.069Z",
+              "duration": 0,
+              "phase": "body",
+              "target": "opening login page",
+              "logs": [
+                {
+                  "t": 1,
+                  "level": "info",
+                  "msg": "opening login page"
+                }
+              ]
+            },
+            {
+              "id": "step_kw_b18e399c2f",
+              "title": "BuiltIn.Sleep",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.070Z",
+              "duration": 2,
+              "phase": "body",
+              "target": "1ms",
+              "logs": [
+                {
+                  "t": 3,
+                  "level": "info",
+                  "msg": "Slept 1 millisecond."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "step_kw_1299a615f1",
+          "title": "Submit Credentials",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.072Z",
+          "duration": 2,
+          "phase": "body",
+          "target": "demo, demo",
+          "children": [
+            {
+              "id": "step_kw_b7c47ea662",
+              "title": "BuiltIn.Log",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.072Z",
+              "duration": 0,
+              "phase": "body",
+              "target": "submitting ${user}",
+              "logs": [
+                {
+                  "t": 3,
+                  "level": "info",
+                  "msg": "submitting demo"
+                }
+              ]
+            },
+            {
+              "id": "step_kw_9a98d9093a",
+              "title": "BuiltIn.Sleep",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.072Z",
+              "duration": 2,
+              "phase": "body",
+              "target": "1ms",
+              "logs": [
+                {
+                  "t": 5,
+                  "level": "info",
+                  "msg": "Slept 1 millisecond."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "step_kw_622ebc1002",
+          "title": "Verify Redirected To Home",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.074Z",
+          "duration": 1,
+          "phase": "body",
+          "children": [
+            {
+              "id": "step_kw_b7829fb98b",
+              "title": "BuiltIn.Log",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.074Z",
+              "duration": 0,
+              "phase": "body",
+              "target": "landed on /home",
+              "logs": [
+                {
+                  "t": 5,
+                  "level": "info",
+                  "msg": "landed on /home"
+                }
+              ]
+            },
+            {
+              "id": "step_kw_96391bb221",
+              "title": "BuiltIn.Should Be Equal",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.074Z",
+              "duration": 0,
+              "phase": "body",
+              "target": "ok, ok"
+            }
+          ]
+        },
+        {
+          "id": "step_kw_225c7c013d",
+          "title": "Attach Session Dump",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.075Z",
+          "duration": 1,
+          "phase": "body",
+          "children": [
+            {
+              "id": "step_kw_ea313e46d7",
+              "title": "KenshoLib.Get Demo Fixtures Dir",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.075Z",
+              "duration": 0,
+              "phase": "body",
+              "logs": [
+                {
+                  "t": 6,
+                  "level": "info",
+                  "msg": "${root} = /Users/boz1794/Desktop/Proyectos/kaizen-reports/kensho/examples/robot-demo/fixtures"
+                }
+              ]
+            },
+            {
+              "id": "step_kw_490e55a501",
+              "title": "KenshoLib.Attach Fixture",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.075Z",
+              "duration": 1,
+              "phase": "body",
+              "target": "${root}/session.txt, text, session-dump.txt"
+            }
+          ]
+        }
+      ],
+      "finishedAt": "2026-04-27T17:32:02.076Z",
+      "attachments": [
+        {
+          "id": "att_ec801ae7",
+          "kind": "text",
+          "relativePath": "attachments/tc_eb01f5b8a65b6bb6/att_ec801ae7_session-dump.txt",
+          "mimeType": "text/plain",
+          "sizeBytes": 96
+        }
+      ]
+    },
+    {
+      "id": "tc_e7871ef9a0cb901b",
+      "name": "Cart Total Is Wrong",
+      "fullName": "Tests.Example.Cart Total Is Wrong",
+      "filePath": "tests/example.robot",
+      "suite": [
+        "Tests",
+        "Example"
+      ],
+      "tags": [
+        "demo"
+      ],
+      "status": "fail",
+      "startedAt": "2026-04-27T17:32:02.076Z",
+      "duration": 1,
+      "retries": 0,
+      "platform": "darwin",
+      "line": 21,
+      "severity": "blocker",
+      "behavior": {
+        "feature": "Cart"
+      },
+      "description": "Failing test \u2014 should map to status='fail'.",
+      "steps": [
+        {
+          "id": "step_kw_81d995511f",
+          "title": "Load Cart Fixture",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.077Z",
+          "duration": 0,
+          "phase": "body",
+          "children": [
+            {
+              "id": "step_kw_5c4b88bc0c",
+              "title": "BuiltIn.Log",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.077Z",
+              "duration": 0,
+              "phase": "body",
+              "target": "loading cart fixture",
+              "logs": [
+                {
+                  "t": 0,
+                  "level": "info",
+                  "msg": "loading cart fixture"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "step_kw_7af245e176",
+          "title": "Verify Total",
+          "action": "group",
+          "status": "fail",
+          "startedAt": "2026-04-27T17:32:02.077Z",
+          "duration": 1,
+          "phase": "body",
+          "target": "expected=40",
+          "children": [
+            {
+              "id": "step_kw_5721878316",
+              "title": "BuiltIn.Should Be Equal As Integers",
+              "action": "group",
+              "status": "fail",
+              "startedAt": "2026-04-27T17:32:02.077Z",
+              "duration": 0,
+              "phase": "body",
+              "target": "30, ${expected}, cart total mismatch",
+              "logs": [
+                {
+                  "t": 1,
+                  "level": "error",
+                  "msg": "cart total mismatch: 30 != 40"
+                }
+              ],
+              "assertion": {
+                "stack": "cart total mismatch: 30 != 40"
+              }
+            }
+          ],
+          "assertion": {
+            "stack": "cart total mismatch: 30 != 40"
+          }
+        }
+      ],
+      "finishedAt": "2026-04-27T17:32:02.078Z",
+      "errors": [
+        {
+          "message": "cart total mismatch: 30 != 40",
+          "stack": "cart total mismatch: 30 != 40"
+        }
+      ]
+    },
+    {
+      "id": "tc_2940652d4d9a0113",
+      "name": "Promo Codes Skipped",
+      "fullName": "Tests.Example.Promo Codes Skipped",
+      "filePath": "tests/example.robot",
+      "suite": [
+        "Tests",
+        "Example"
+      ],
+      "tags": [
+        "demo"
+      ],
+      "status": "skip",
+      "startedAt": "2026-04-27T17:32:02.078Z",
+      "duration": 1,
+      "retries": 0,
+      "platform": "darwin",
+      "line": 27,
+      "severity": "minor",
+      "behavior": {
+        "feature": "Kensho Robot Demo"
+      },
+      "steps": [
+        {
+          "id": "step_kw_3c0ffa3716",
+          "title": "BuiltIn.Skip",
+          "action": "group",
+          "status": "skip",
+          "startedAt": "2026-04-27T17:32:02.078Z",
+          "duration": 0,
+          "phase": "body",
+          "target": "feature not enabled in this environment",
+          "logs": [
+            {
+              "t": 0,
+              "level": "info",
+              "msg": "feature not enabled in this environment"
+            }
+          ]
+        }
+      ],
+      "finishedAt": "2026-04-27T17:32:02.079Z"
+    },
+    {
+      "id": "tc_6e22e4d0145a8ae2",
+      "name": "Search Returns Expected Count",
+      "fullName": "Tests.Example.Search Returns Expected Count",
+      "filePath": "tests/example.robot",
+      "suite": [
+        "Tests",
+        "Example"
+      ],
+      "tags": [
+        "demo"
+      ],
+      "status": "pass",
+      "startedAt": "2026-04-27T17:32:02.079Z",
+      "duration": 4,
+      "retries": 0,
+      "platform": "darwin",
+      "line": 31,
+      "severity": "normal",
+      "behavior": {
+        "feature": "Search"
+      },
+      "description": "Data-driven test: every row becomes a Kensho parameter row.",
+      "parameters": [
+        {
+          "name": "template",
+          "value": "Verify Search",
+          "kind": "context"
+        }
+      ],
+      "steps": [
+        {
+          "id": "step_kw_3da07609fe",
+          "title": "Verify Search",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.079Z",
+          "duration": 1,
+          "phase": "body",
+          "target": "widgets, 3",
+          "children": [
+            {
+              "id": "step_kw_cc91ba4564",
+              "title": "BuiltIn.Log",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.079Z",
+              "duration": 0,
+              "phase": "body",
+              "target": "searching for ${query}",
+              "logs": [
+                {
+                  "t": 0,
+                  "level": "info",
+                  "msg": "searching for widgets"
+                }
+              ]
+            },
+            {
+              "id": "step_kw_9229c60384",
+              "title": "BuiltIn.Create Dictionary",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.080Z",
+              "duration": 0,
+              "phase": "body",
+              "target": "widgets=3, gadgets=5, doodads=0",
+              "logs": [
+                {
+                  "t": 1,
+                  "level": "info",
+                  "msg": "${db} = {'widgets': '3', 'gadgets': '5', 'doodads': '0'}"
+                }
+              ]
+            },
+            {
+              "id": "step_kw_5591aa77a6",
+              "title": "Collections.Get From Dictionary",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.080Z",
+              "duration": 0,
+              "phase": "body",
+              "target": "${db}, ${query}",
+              "logs": [
+                {
+                  "t": 1,
+                  "level": "info",
+                  "msg": "${got} = 3"
+                }
+              ]
+            },
+            {
+              "id": "step_kw_61e0d6202c",
+              "title": "BuiltIn.Should Be Equal As Integers",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.080Z",
+              "duration": 0,
+              "phase": "body",
+              "target": "${got}, ${expected}"
+            }
+          ]
+        },
+        {
+          "id": "step_kw_81a7cf64bc",
+          "title": "Verify Search",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.081Z",
+          "duration": 1,
+          "phase": "body",
+          "target": "gadgets, 5",
+          "children": [
+            {
+              "id": "step_kw_c641ee2b3e",
+              "title": "BuiltIn.Log",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.081Z",
+              "duration": 0,
+              "phase": "body",
+              "target": "searching for ${query}",
+              "logs": [
+                {
+                  "t": 2,
+                  "level": "info",
+                  "msg": "searching for gadgets"
+                }
+              ]
+            },
+            {
+              "id": "step_kw_bf8d8caa76",
+              "title": "BuiltIn.Create Dictionary",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.081Z",
+              "duration": 0,
+              "phase": "body",
+              "target": "widgets=3, gadgets=5, doodads=0",
+              "logs": [
+                {
+                  "t": 2,
+                  "level": "info",
+                  "msg": "${db} = {'widgets': '3', 'gadgets': '5', 'doodads': '0'}"
+                }
+              ]
+            },
+            {
+              "id": "step_kw_ddaed090ef",
+              "title": "Collections.Get From Dictionary",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.081Z",
+              "duration": 0,
+              "phase": "body",
+              "target": "${db}, ${query}",
+              "logs": [
+                {
+                  "t": 2,
+                  "level": "info",
+                  "msg": "${got} = 5"
+                }
+              ]
+            },
+            {
+              "id": "step_kw_2400c91a2e",
+              "title": "BuiltIn.Should Be Equal As Integers",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.082Z",
+              "duration": 0,
+              "phase": "body",
+              "target": "${got}, ${expected}"
+            }
+          ]
+        },
+        {
+          "id": "step_kw_a7b466629f",
+          "title": "Verify Search",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.082Z",
+          "duration": 1,
+          "phase": "body",
+          "target": "doodads, 0",
+          "children": [
+            {
+              "id": "step_kw_73dee2b0c7",
+              "title": "BuiltIn.Log",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.082Z",
+              "duration": 0,
+              "phase": "body",
+              "target": "searching for ${query}",
+              "logs": [
+                {
+                  "t": 3,
+                  "level": "info",
+                  "msg": "searching for doodads"
+                }
+              ]
+            },
+            {
+              "id": "step_kw_3a7f23cb8e",
+              "title": "BuiltIn.Create Dictionary",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.082Z",
+              "duration": 0,
+              "phase": "body",
+              "target": "widgets=3, gadgets=5, doodads=0",
+              "logs": [
+                {
+                  "t": 3,
+                  "level": "info",
+                  "msg": "${db} = {'widgets': '3', 'gadgets': '5', 'doodads': '0'}"
+                }
+              ]
+            },
+            {
+              "id": "step_kw_316d722797",
+              "title": "Collections.Get From Dictionary",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.083Z",
+              "duration": 0,
+              "phase": "body",
+              "target": "${db}, ${query}",
+              "logs": [
+                {
+                  "t": 4,
+                  "level": "info",
+                  "msg": "${got} = 0"
+                }
+              ]
+            },
+            {
+              "id": "step_kw_ec551b57cd",
+              "title": "BuiltIn.Should Be Equal As Integers",
+              "action": "group",
+              "status": "pass",
+              "startedAt": "2026-04-27T17:32:02.083Z",
+              "duration": 0,
+              "phase": "body",
+              "target": "${got}, ${expected}"
+            }
+          ]
+        }
+      ],
+      "finishedAt": "2026-04-27T17:32:02.083Z"
+    },
+    {
+      "id": "tc_7548848fbafa1791",
+      "name": "Logs Only",
+      "fullName": "Tests.Example.Logs Only",
+      "filePath": "tests/example.robot",
+      "suite": [
+        "Tests",
+        "Example"
+      ],
+      "tags": [
+        "demo"
+      ],
+      "status": "pass",
+      "startedAt": "2026-04-27T17:32:02.084Z",
+      "duration": 1,
+      "retries": 0,
+      "platform": "darwin",
+      "line": 39,
+      "severity": "trivial",
+      "behavior": {
+        "feature": "Kensho Robot Demo"
+      },
+      "steps": [
+        {
+          "id": "step_kw_d52887b65d",
+          "title": "BuiltIn.Log",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.084Z",
+          "duration": 0,
+          "phase": "body",
+          "target": "hello from log",
+          "logs": [
+            {
+              "t": 0,
+              "level": "info",
+              "msg": "hello from log"
+            }
+          ]
+        },
+        {
+          "id": "step_kw_41b66acab9",
+          "title": "BuiltIn.Log",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.084Z",
+          "duration": 0,
+          "phase": "body",
+          "target": "something to inspect",
+          "logs": [
+            {
+              "t": 0,
+              "level": "info",
+              "msg": "something to inspect"
+            }
+          ]
+        }
+      ],
+      "finishedAt": "2026-04-27T17:32:02.084Z"
+    }
+  ]
+}

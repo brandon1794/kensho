@@ -1,0 +1,262 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kaizenreport.io/schemas/kensho/v1.json",
+  "title": "Kensho v1 run",
+  "description": "A single test run — one CI job or one local run of a suite. Written by Kensho adapters (reporter plugins) and consumed by the Kensho generator and the KaizenReport platform.",
+  "type": "object",
+  "required": ["schemaVersion", "id", "project", "framework", "startedAt", "finishedAt", "totals", "testCases"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "const": "kensho/v1" },
+    "id": { "type": "string", "minLength": 1, "description": "UUID or monotonic id for this run. Used as the S3 prefix when uploaded." },
+    "project": {
+      "type": "object",
+      "required": ["name", "slug"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "slug": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-_]*$" },
+        "url": { "type": "string", "format": "uri" }
+      }
+    },
+    "framework": {
+      "type": "object",
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "enum": ["playwright", "cypress", "jest", "vitest", "cucumber-js", "pytest", "behave", "rspec", "cucumber-ruby", "junit5", "testng", "nunit", "mstest", "robot", "go-test", "junit-xml"] },
+        "version": { "type": "string" }
+      }
+    },
+    "env": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ci": { "type": "string", "enum": ["github-actions", "circleci", "gitlab", "jenkins", "buildkite", "azure-devops", "local", "unknown"] },
+        "branch": { "type": "string" },
+        "commit": { "type": "string" },
+        "commitMsg": { "type": "string" },
+        "author": { "type": "string" },
+        "runUrl": { "type": "string", "format": "uri" },
+        "repoUrl": { "type": "string", "format": "uri", "description": "URL of the source repo (e.g. https://github.com/acme/web). Used by the viewer to linkify the branch and commit chips." },
+        "os": { "type": "string" },
+        "osVersion": { "type": "string" },
+        "arch": { "type": "string" },
+        "nodeVersion": { "type": "string" },
+        "pythonVersion": { "type": "string" },
+        "browsers": { "type": "array", "items": { "type": "string" } },
+        "workers": { "type": "integer", "minimum": 1 },
+        "stage": { "type": "string", "description": "Target environment: dev, qa, staging, preprod, prod, sandbox, etc." },
+        "baseUrl": { "type": "string", "description": "App URL the run targeted (e.g. https://staging.example.com)" },
+        "appVersion": { "type": "string", "description": "Version of the system-under-test (e.g. 4.12.3)" },
+        "buildNumber": { "type": "string" },
+        "release": { "type": "string", "description": "Release tag/Jira fix-version (e.g. R-2026.04.25)" },
+        "device": { "type": "string", "description": "Device model when relevant (e.g. Pixel 8, iPhone 15 Pro)" },
+        "viewport": { "type": "string", "description": "Viewport size (e.g. 1440x900, 390x844)" },
+        "region": { "type": "string", "description": "Geographic region (e.g. us-east-1, eu-west-2)" },
+        "locale": { "type": "string", "description": "Locale (e.g. en-US, es-ES)" },
+        "timezone": { "type": "string" },
+        "tunnel": { "type": "string", "description": "Tunnel/grid info (BrowserStack, Sauce Labs, Selenium grid URL)" },
+        "trigger": { "type": "string", "description": "What kicked off the run (push, pull_request, schedule, manual)" },
+        "feature": { "type": "string", "description": "Feature flag bundle / experiment cohort active during the run" },
+        "vars": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Open-ended bag for any custom string variables not covered above." }
+      }
+    },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "finishedAt": { "type": "string", "format": "date-time" },
+    "totals": {
+      "type": "object",
+      "required": ["pass", "fail", "broken", "skip"],
+      "additionalProperties": false,
+      "properties": {
+        "pass":   { "type": "integer", "minimum": 0 },
+        "fail":   { "type": "integer", "minimum": 0 },
+        "broken": { "type": "integer", "minimum": 0 },
+        "skip":   { "type": "integer", "minimum": 0 },
+        "flaky":  { "type": "integer", "minimum": 0 }
+      }
+    },
+    "durationMs": { "type": "integer", "minimum": 0 },
+    "testCases": { "type": "array", "items": { "$ref": "#/$defs/case" } },
+    "categories": { "type": "array", "items": { "$ref": "#/$defs/category" } },
+    "links": { "type": "array", "items": { "$ref": "#/$defs/link" } }
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "required": ["id", "name", "fullName", "status", "startedAt", "duration"],
+      "additionalProperties": false,
+      "properties": {
+        "id":        { "type": "string" },
+        "name":      { "type": "string" },
+        "fullName":  { "type": "string" },
+        "filePath":  { "type": "string" },
+        "line":      { "type": "integer" },
+        "suite":     { "type": "array", "items": { "type": "string" } },
+        "tags":      { "type": "array", "items": { "type": "string" } },
+        "severity":  { "type": "string", "enum": ["blocker", "critical", "normal", "minor", "trivial"] },
+        "owner":     { "type": "string" },
+        "labels":    { "type": "object", "additionalProperties": { "type": "string" } },
+        "status":    { "type": "string", "enum": ["pass", "fail", "broken", "skip"] },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "finishedAt":{ "type": "string", "format": "date-time" },
+        "duration":  { "type": "integer", "minimum": 0 },
+        "retryOf":   { "type": "string" },
+        "retries":   { "type": "integer", "minimum": 0 },
+        "browser":   { "type": "string" },
+        "platform":  { "type": "string" },
+        "worker":    { "type": "integer" },
+        "steps":     { "type": "array", "items": { "$ref": "#/$defs/step" } },
+        "errors":    { "type": "array", "items": { "$ref": "#/$defs/error" } },
+        "attachments": { "type": "array", "items": { "$ref": "#/$defs/attachment" } },
+        "logs":      { "type": "array", "items": { "$ref": "#/$defs/log" } },
+        "behavior":  {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "epic":     { "type": "string" },
+            "feature":  { "type": "string" },
+            "scenario": { "type": "string" },
+            "gherkin":  { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "parameters": { "type": "array", "items": { "$ref": "#/$defs/parameter" } },
+        "description": { "type": "string" },
+        "history": { "type": "array", "items": { "$ref": "#/$defs/historyEntry" } },
+        "links": { "type": "array", "items": { "$ref": "#/$defs/link" } }
+      }
+    },
+    "link": {
+      "type": "object",
+      "required": ["url"],
+      "additionalProperties": false,
+      "properties": {
+        "kind":  { "type": "string", "description": "Free-form (jira, github, gitlab, linear, slack, doc, runbook, pr, other)." },
+        "url":   { "type": "string", "format": "uri" },
+        "label": { "type": "string", "description": "Human label, e.g. 'PROJ-123' or 'Runbook'. If omitted, the URL host or last segment is shown." }
+      }
+    },
+    "step": {
+      "type": "object",
+      "required": ["id", "title", "status", "startedAt", "duration"],
+      "additionalProperties": false,
+      "properties": {
+        "id":       { "type": "string" },
+        "title":    { "type": "string" },
+        "action":   { "type": "string" },
+        "target":   { "type": "string" },
+        "status":   { "type": "string", "enum": ["pass", "fail", "skip"] },
+        "startedAt":{ "type": "string", "format": "date-time" },
+        "duration": { "type": "integer", "minimum": 0 },
+        "phase":    { "type": "string", "enum": ["setup", "body", "teardown"], "description": "Optional grouping — Allure-style Setup / Test body / Tear down" },
+        "logs":     { "type": "array", "items": { "$ref": "#/$defs/log" } },
+        "network":  { "type": "array", "items": { "$ref": "#/$defs/networkEntry" } },
+        "parameters": { "type": "array", "items": { "$ref": "#/$defs/parameter" } },
+        "attachments": { "type": "array", "items": { "$ref": "#/$defs/attachment" } },
+        "assertion":{
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "expected": {},
+            "received": {},
+            "diff":  { "type": "string" },
+            "stack": { "type": "string" }
+          }
+        },
+        "dom": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "beforeRef": { "type": "string" },
+            "afterRef":  { "type": "string" }
+          }
+        },
+        "children": { "type": "array", "items": { "$ref": "#/$defs/step" } }
+      }
+    },
+    "parameter": {
+      "type": "object",
+      "required": ["name", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "name":  { "type": "string" },
+        "value": { "type": "string" },
+        "hidden":{ "type": "boolean", "description": "Redact in the report (for secrets)" },
+        "kind":  { "type": "string", "enum": ["argument", "context", "env", "data-row"] }
+      }
+    },
+    "historyEntry": {
+      "type": "object",
+      "required": ["runId", "status", "startedAt"],
+      "additionalProperties": false,
+      "properties": {
+        "runId":    { "type": "string" },
+        "status":   { "type": "string", "enum": ["pass", "fail", "broken", "skip"] },
+        "startedAt":{ "type": "string", "format": "date-time" },
+        "duration": { "type": "integer" },
+        "commit":   { "type": "string" },
+        "branch":   { "type": "string" }
+      }
+    },
+    "attachment": {
+      "type": "object",
+      "required": ["id", "kind", "relativePath", "mimeType"],
+      "additionalProperties": false,
+      "properties": {
+        "id":           { "type": "string" },
+        "kind":         { "type": "string", "enum": ["screenshot", "video", "trace", "har", "text", "json", "html", "dom-snapshot", "log"] },
+        "relativePath": { "type": "string" },
+        "mimeType":     { "type": "string" },
+        "sizeBytes":    { "type": "integer", "minimum": 0 },
+        "sha256":       { "type": "string" },
+        "thumbnailRef": { "type": "string" },
+        "meta":         { "type": "object", "additionalProperties": true }
+      }
+    },
+    "log": {
+      "type": "object",
+      "required": ["t", "level", "msg"],
+      "additionalProperties": false,
+      "properties": {
+        "t":     { "type": "integer", "minimum": 0, "description": "Offset in ms from case.startedAt" },
+        "level": { "type": "string", "enum": ["debug", "info", "warn", "error"] },
+        "msg":   { "type": "string" }
+      }
+    },
+    "networkEntry": {
+      "type": "object",
+      "required": ["method", "url", "status", "durationMs"],
+      "additionalProperties": false,
+      "properties": {
+        "method":     { "type": "string" },
+        "url":        { "type": "string" },
+        "status":     { "type": "integer" },
+        "durationMs": { "type": "integer" },
+        "sizeBytes":  { "type": "integer" },
+        "requestBody":{ "type": "string" },
+        "responseBody":{ "type": "string" }
+      }
+    },
+    "error": {
+      "type": "object",
+      "required": ["message"],
+      "additionalProperties": false,
+      "properties": {
+        "message": { "type": "string" },
+        "stack":   { "type": "string" },
+        "type":    { "type": "string" }
+      }
+    },
+    "category": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name":         { "type": "string" },
+        "matchMessage": { "type": "string", "description": "Regex against error.message" },
+        "matchStatus":  { "type": "string", "enum": ["fail", "broken"] },
+        "description":  { "type": "string" }
+      }
+    }
+  }
+}

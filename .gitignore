@@ -1,0 +1,9 @@
+node_modules/
+kensho-results/
+kensho-report/
+kensho-diff/
+*.tgz
+.DS_Store
+dist/.cache/
+# checked-in fixtures stay tracked (adapters whose runtime isn't on every box)
+!**/fixtures/kensho-results/**

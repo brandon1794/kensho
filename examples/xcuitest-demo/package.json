@@ -1,0 +1,18 @@
+{
+  "name": "xcuitest-demo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Example XCUITest workflow. The fixture JSON is what `xcrun xcresulttool get --format json` would emit on macOS, hand-trimmed so the demo is self-contained.",
+  "scripts": {
+    "seed":     "node ../../packages/xcuitest/bin/kensho-xcuitest.js --input ./fixtures/sample.xcresult.json --output ./kensho-results --project-name 'Acme iOS' --project-slug acme-ios",
+    "validate": "node ../../packages/cli/bin/kensho.js validate ./kensho-results",
+    "generate": "node ../../packages/cli/bin/kensho.js generate --input ./kensho-results --output ./kensho-report",
+    "open":     "node ../../packages/cli/bin/kensho.js open --report ./kensho-report",
+    "demo":     "pnpm run seed && pnpm run validate && pnpm run generate"
+  },
+  "dependencies": {
+    "@kaizenreport/kensho-xcuitest": "workspace:*",
+    "@kaizenreport/kensho-schema": "workspace:*"
+  }
+}

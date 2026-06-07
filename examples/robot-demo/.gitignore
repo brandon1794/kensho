@@ -1,0 +1,7 @@
+kensho-results/
+kensho-report/
+output.xml
+log.html
+report.html
+__pycache__/
+*.pyc

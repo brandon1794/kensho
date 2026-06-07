@@ -1,0 +1,35 @@
+{
+  "name": "@kaizenreport/kensho-go",
+  "version": "0.1.0",
+  "description": "Convert `go test -json` output into a kensho-results/ bundle so the Kensho CLI can render a rich HTML report.",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "kensho-go": "./bin/kensho-go.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "go-helper",
+    "README.md"
+  ],
+  "dependencies": {
+    "@kaizenreport/kensho-schema": "workspace:*"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brandon1794/kensho.git",
+    "directory": "packages/go"
+  },
+  "homepage": "https://github.com/brandon1794/kensho/tree/main/packages/go#readme",
+  "bugs": {
+    "url": "https://github.com/brandon1794/kensho/issues"
+  }
+}

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 64" fill="none">
+  <defs>
+    <linearGradient id="wg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1E6BFF"></stop>
+      <stop offset="1" stop-color="#0B3FB5"></stop>
+    </linearGradient>
+    <linearGradient id="wg2" x1="32" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3DDC84"></stop>
+      <stop offset="1" stop-color="#1FA864"></stop>
+    </linearGradient>
+  </defs>
+  <path d="M14 12h8v40h-8z" fill="url(#wg)"></path>
+  <path d="M22 32 L34 14 h10 L31 32 Z" fill="url(#wg)"></path>
+  <path d="M22 32 L34 50 h10 L31 32 Z" fill="url(#wg2)"></path>
+  <path d="M44 24 l4 4 l8-8" stroke="#1FA864" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+  <text x="74" y="42" font-family="Manrope, Inter, system-ui, sans-serif" font-size="28" font-weight="700" fill="#0B1220" letter-spacing="-0.5">kensho</text>
+  <text x="74" y="56" font-family="JetBrains Mono, ui-monospace, monospace" font-size="9" font-weight="500" fill="#5B6478" letter-spacing="2">TEST · REPORTS</text>
+</svg>

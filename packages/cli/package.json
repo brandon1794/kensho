@@ -1,0 +1,41 @@
+{
+  "name": "@kaizenreport/kensho",
+  "version": "0.1.0",
+  "description": "Kensho CLI — read kensho-results/, generate a beautiful static test report, optionally upload to the KaizenReport platform.",
+  "type": "module",
+  "bin": {
+    "kensho": "bin/kensho.js"
+  },
+  "main": "src/index.js",
+  "files": [
+    "bin",
+    "src",
+    "viewer-template",
+    "README.md"
+  ],
+  "scripts": {
+    "generate": "node bin/kensho.js generate",
+    "open": "node bin/kensho.js open",
+    "test": "node --test \"src/__tests__/*.test.js\""
+  },
+  "dependencies": {
+    "@kaizenreport/kensho-schema": "workspace:*",
+    "@kaizenreport/kensho-viewer": "workspace:*"
+  },
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brandon1794/kensho.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/brandon1794/kensho/tree/main/packages/cli#readme",
+  "bugs": {
+    "url": "https://github.com/brandon1794/kensho/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

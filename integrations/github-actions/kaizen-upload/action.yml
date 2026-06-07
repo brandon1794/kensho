@@ -1,0 +1,84 @@
+name: 'Kaizen Upload'
+description: 'Upload a Kensho run (kensho-results/) to a Kaizen workspace via the kensho push or kensho watch CLI.'
+author: 'KaizenReport'
+branding:
+  icon: 'upload-cloud'
+  color: 'purple'
+
+inputs:
+  kensho-results-path:
+    description: 'Path to the kensho-results/ directory produced by your test reporter.'
+    required: false
+    default: './kensho-results'
+  workspace-slug:
+    description: 'Kaizen workspace slug (e.g. my-org).'
+    required: true
+  project-slug:
+    description: 'Kaizen project slug (e.g. my-app).'
+    required: true
+  kaizen-token:
+    description: 'Kaizen API token (kz_*). Pass via secrets, never hard-code.'
+    required: true
+  live:
+    description: 'When "true", use `kensho watch` (streams steps as they complete) instead of `kensho push` (single upload at the end).'
+    required: false
+    default: 'false'
+  server:
+    description: 'Kaizen server base URL.'
+    required: false
+    default: 'https://api.kaizenreport.com'
+  kensho-version:
+    description: 'Version of @kaizenreport/kensho to invoke via npx (defaults to latest).'
+    required: false
+    default: 'latest'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Validate kensho-results directory
+      shell: bash
+      env:
+        KENSHO_RESULTS_PATH: ${{ inputs.kensho-results-path }}
+      run: |
+        if [ ! -d "$KENSHO_RESULTS_PATH" ]; then
+          echo "::error title=Kensho results missing::No directory at '$KENSHO_RESULTS_PATH'."
+          echo "Make sure your test step writes Kensho results to that path before this action runs."
+          exit 1
+        fi
+        if [ ! -f "$KENSHO_RESULTS_PATH/run.json" ]; then
+          echo "::warning title=run.json not found::'$KENSHO_RESULTS_PATH/run.json' is missing — the upload will likely fail."
+        fi
+
+    - name: Upload to Kaizen
+      shell: bash
+      env:
+        # Token is passed via env (caps) so it inherits GitHub Actions' secret masking.
+        KAIZEN_TOKEN: ${{ inputs.kaizen-token }}
+        KAIZEN_WORKSPACE: ${{ inputs.workspace-slug }}
+        KAIZEN_PROJECT: ${{ inputs.project-slug }}
+        KAIZEN_SERVER: ${{ inputs.server }}
+        KENSHO_RESULTS_PATH: ${{ inputs.kensho-results-path }}
+        KENSHO_VERSION: ${{ inputs.kensho-version }}
+        KENSHO_LIVE: ${{ inputs.live }}
+      run: |
+        # Re-mask defensively; GitHub already masks `inputs.kaizen-token` if sourced from a secret.
+        echo "::add-mask::$KAIZEN_TOKEN"
+
+        if [ -z "$KAIZEN_TOKEN" ]; then
+          echo "::error title=Missing token::kaizen-token input is empty. Set secrets.KAIZEN_TOKEN in repo settings."
+          exit 1
+        fi
+
+        if [ "$KENSHO_LIVE" = "true" ]; then
+          SUBCOMMAND="watch"
+        else
+          SUBCOMMAND="push"
+        fi
+
+        echo "Running: npx --yes @kaizenreport/kensho@${KENSHO_VERSION} ${SUBCOMMAND} ..."
+        npx --yes "@kaizenreport/kensho@${KENSHO_VERSION}" "${SUBCOMMAND}" \
+          --workspace "${KAIZEN_WORKSPACE}" \
+          --project "${KAIZEN_PROJECT}" \
+          --token "${KAIZEN_TOKEN}" \
+          --input "${KENSHO_RESULTS_PATH}" \
+          --server "${KAIZEN_SERVER}"

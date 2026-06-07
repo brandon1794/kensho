@@ -1,0 +1,96 @@
+{
+  "id": "tc_e7871ef9a0cb901b",
+  "name": "Cart Total Is Wrong",
+  "fullName": "Tests.Example.Cart Total Is Wrong",
+  "filePath": "tests/example.robot",
+  "suite": [
+    "Tests",
+    "Example"
+  ],
+  "tags": [
+    "demo"
+  ],
+  "status": "fail",
+  "startedAt": "2026-04-27T17:32:02.076Z",
+  "duration": 1,
+  "retries": 0,
+  "platform": "darwin",
+  "line": 21,
+  "severity": "blocker",
+  "behavior": {
+    "feature": "Cart"
+  },
+  "description": "Failing test \u2014 should map to status='fail'.",
+  "steps": [
+    {
+      "id": "step_kw_81d995511f",
+      "title": "Load Cart Fixture",
+      "action": "group",
+      "status": "pass",
+      "startedAt": "2026-04-27T17:32:02.077Z",
+      "duration": 0,
+      "phase": "body",
+      "children": [
+        {
+          "id": "step_kw_5c4b88bc0c",
+          "title": "BuiltIn.Log",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.077Z",
+          "duration": 0,
+          "phase": "body",
+          "target": "loading cart fixture",
+          "logs": [
+            {
+              "t": 0,
+              "level": "info",
+              "msg": "loading cart fixture"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "step_kw_7af245e176",
+      "title": "Verify Total",
+      "action": "group",
+      "status": "fail",
+      "startedAt": "2026-04-27T17:32:02.077Z",
+      "duration": 1,
+      "phase": "body",
+      "target": "expected=40",
+      "children": [
+        {
+          "id": "step_kw_5721878316",
+          "title": "BuiltIn.Should Be Equal As Integers",
+          "action": "group",
+          "status": "fail",
+          "startedAt": "2026-04-27T17:32:02.077Z",
+          "duration": 0,
+          "phase": "body",
+          "target": "30, ${expected}, cart total mismatch",
+          "logs": [
+            {
+              "t": 1,
+              "level": "error",
+              "msg": "cart total mismatch: 30 != 40"
+            }
+          ],
+          "assertion": {
+            "stack": "cart total mismatch: 30 != 40"
+          }
+        }
+      ],
+      "assertion": {
+        "stack": "cart total mismatch: 30 != 40"
+      }
+    }
+  ],
+  "finishedAt": "2026-04-27T17:32:02.078Z",
+  "errors": [
+    {
+      "message": "cart total mismatch: 30 != 40",
+      "stack": "cart total mismatch: 30 != 40"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "name": "@kaizenreport/kensho-detox",
+  "version": "0.1.0",
+  "description": "Kensho adapter for Detox (React Native E2E) — Jest reporter that captures Detox device + app metadata and emits kensho-results/.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./helpers": "./src/helpers.js"
+  },
+  "files": [
+    "index.js",
+    "src",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "detox": ">=20.0.0",
+    "jest": ">=29.0.0"
+  },
+  "peerDependenciesMeta": {
+    "detox": {
+      "optional": true
+    },
+    "jest": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@kaizenreport/kensho-schema": "workspace:*"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brandon1794/kensho.git",
+    "directory": "packages/detox"
+  },
+  "homepage": "https://github.com/brandon1794/kensho/tree/main/packages/detox#readme",
+  "bugs": {
+    "url": "https://github.com/brandon1794/kensho/issues"
+  }
+}

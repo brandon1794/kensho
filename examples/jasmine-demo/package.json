@@ -1,0 +1,22 @@
+{
+  "name": "jasmine-demo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Standalone Jasmine project wired to the Kensho reporter.",
+  "type": "module",
+  "scripts": {
+    "test": "node ./scripts/run-jasmine.mjs",
+    "seed": "node ./scripts/seed-results.mjs",
+    "validate": "node ../../packages/cli/bin/kensho.js validate ./kensho-results",
+    "generate": "node ../../packages/cli/bin/kensho.js generate --input ./kensho-results --output ./kensho-report",
+    "open": "node ../../packages/cli/bin/kensho.js open --report ./kensho-report",
+    "demo": "pnpm run seed && pnpm run validate && pnpm run generate"
+  },
+  "dependencies": {
+    "@kaizenreport/kensho-jasmine": "workspace:*",
+    "@kaizenreport/kensho-schema": "workspace:*"
+  },
+  "devDependencies": {
+    "jasmine": "^5.1.0"
+  }
+}

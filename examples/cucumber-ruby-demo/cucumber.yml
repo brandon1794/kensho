@@ -1,0 +1,1 @@
+default: --require kensho/cucumber --require features --format Kensho::Cucumber::Formatter --out /dev/null --format pretty

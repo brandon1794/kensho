@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kensho-pytest-demo"
+version = "0.0.0"
+description = "Example pytest project wired to the Kensho reporter."
+requires-python = ">=3.9"
+dependencies = [
+  "pytest>=7.0",
+  # Installed in editable mode from the monorepo for local hacking:
+  #   pip install -e ../../packages/pytest
+  "kensho-pytest",
+]
+
+[tool.pytest.ini_options]
+kensho_project_name = "Kensho Demo"
+kensho_project_slug = "kensho-demo"
+testpaths = ["tests"]

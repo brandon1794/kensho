@@ -1,0 +1,21 @@
+{
+  "name": "newman-demo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Postman / Newman demo wired to the Kensho reporter.",
+  "scripts": {
+    "test": "newman run collection.json -r kensho --reporter-kensho-projectName 'Acme API' --reporter-kensho-projectSlug acme-api",
+    "seed": "node ./scripts/seed-results.mjs",
+    "validate": "node ../../packages/cli/bin/kensho.js validate ./kensho-results",
+    "generate": "node ../../packages/cli/bin/kensho.js generate --input ./kensho-results --output ./kensho-report",
+    "open": "node ../../packages/cli/bin/kensho.js open --report ./kensho-report",
+    "demo": "pnpm run seed && pnpm run validate && pnpm run generate"
+  },
+  "dependencies": {
+    "newman-reporter-kensho": "workspace:*",
+    "@kaizenreport/kensho-schema": "workspace:*"
+  },
+  "devDependencies": {
+    "newman": "^6.0.0"
+  }
+}

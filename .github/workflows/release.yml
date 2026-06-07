@@ -1,0 +1,55 @@
+# Release — publishes the public Kensho packages to npm.
+#
+# Trigger: push a tag like `v0.1.0` (or run manually). The version published is
+# whatever each package.json declares — bump versions first (see RELEASING.md),
+# commit, then tag.
+#
+# Why `pnpm publish` (not `npm publish`): adapters depend on
+# `@kaizenreport/kensho-schema` (and the CLI on the viewer) via `workspace:*`.
+# pnpm rewrites that to the real version at pack time; npm would ship a literal
+# `workspace:*` and break installs.
+#
+# Idempotent: `pnpm -r publish` skips versions already on the registry.
+#
+# One-time setup: add a repo secret `NPM_TOKEN` (an npm "Automation" token) and
+# make sure the `@kaizenreport` npm org exists.
+
+name: Release (npm)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # npm provenance attestations
+
+env:
+  PNPM_VERSION: 9
+  NODE_VERSION: 22
+
+jobs:
+  publish-npm:
+    name: Publish npm packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - name: Install (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Build the viewer (pre-bundled assets the CLI ships)
+        run: pnpm --filter @kaizenreport/kensho-viewer run build
+      - name: Publish public packages
+        run: pnpm --filter "./packages/**" publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: 'true'

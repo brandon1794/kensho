@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>10.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+
+    <PackageId>KaizenReport.Kensho.NUnit</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>KaizenReport</Authors>
+    <Company>KaizenReport</Company>
+    <Description>NUnit listener that emits the Kensho v1 JSON test-report format. Drop in, run your tests, and `npx kensho generate` produces a self-contained HTML report.</Description>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/kaizenreport/kensho</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/kaizenreport/kensho</RepositoryUrl>
+    <PackageTags>kensho;kaizenreport;nunit;testing;test-report;reporter</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnit.Engine.Api" Version="3.16.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\dotnet-core\KaizenReport.Kensho.Core.csproj" />
+  </ItemGroup>
+
+</Project>

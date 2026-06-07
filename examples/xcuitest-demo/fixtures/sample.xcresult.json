@@ -1,0 +1,194 @@
+{
+  "_type": { "_name": "ActionsInvocationRecord" },
+  "startedTime": { "_type": { "_name": "Date" }, "_value": "2026-04-27T15:30:00Z" },
+  "endedTime":   { "_type": { "_name": "Date" }, "_value": "2026-04-27T15:32:14Z" },
+  "actions": {
+    "_values": [
+      {
+        "_type": { "_name": "ActionRecord" },
+        "schemeCommandName": { "_value": "Test" },
+        "runDestination": {
+          "displayName": { "_value": "iPhone 15 (17.4)" },
+          "targetSDKRecord": { "name": { "_value": "iphonesimulator17.4" } },
+          "targetDeviceRecord": {
+            "modelName": { "_value": "iPhone 15" },
+            "operatingSystemVersion": { "_value": "17.4" }
+          }
+        },
+        "testPlanRunSummaries": {
+          "summaries": {
+            "_values": [
+              {
+                "name": { "_value": "AcmeUITests" },
+                "testableSummaries": {
+                  "_values": [
+                    {
+                      "name":       { "_value": "AcmeUITests" },
+                      "targetName": { "_value": "AcmeUITests" },
+                      "tests": {
+                        "_values": [
+                          {
+                            "name": { "_value": "AcmeUITests.xctest" },
+                            "subtests": {
+                              "_values": [
+                                {
+                                  "name": { "_value": "AuthFlow" },
+                                  "subtests": {
+                                    "_values": [
+                                      {
+                                        "_type": { "_name": "ActionTestSummary" },
+                                        "name":       { "_value": "testSignInWithEmail()" },
+                                        "identifier": { "_value": "AcmeUITests/AuthFlow/testSignInWithEmail" },
+                                        "testStatus": { "_value": "Success" },
+                                        "duration":   { "_type": { "_name": "Double" }, "_value": "1.842" },
+                                        "documentLocationInCreatingWorkspace": {
+                                          "url": { "_value": "file:///src/AcmeUITests/AuthFlow.swift#CharacterRangeLen=0&CharacterRangeLoc=412&EndingColumnNumber=5&EndingLineNumber=22&LocationEncoding=1&StartingColumnNumber=5&StartingLineNumber=14" }
+                                        },
+                                        "activitySummaries": {
+                                          "_values": [
+                                            {
+                                              "title": { "_value": "Open login screen" },
+                                              "activityType": { "_value": "com.apple.dt.xctest.activity-type.userCreated" },
+                                              "start":  { "_value": "2026-04-27T15:30:01Z" },
+                                              "duration": { "_type": { "_name": "Double" }, "_value": "0.420" }
+                                            },
+                                            {
+                                              "title": { "_value": "Tap username field" },
+                                              "activityType": { "_value": "com.apple.dt.xctest.activity-type.userCreated" },
+                                              "start":  { "_value": "2026-04-27T15:30:01.5Z" },
+                                              "duration": { "_type": { "_name": "Double" }, "_value": "0.180" }
+                                            },
+                                            {
+                                              "title": { "_value": "Type email" },
+                                              "activityType": { "_value": "com.apple.dt.xctest.activity-type.userCreated" },
+                                              "start":  { "_value": "2026-04-27T15:30:02Z" },
+                                              "duration": { "_type": { "_name": "Double" }, "_value": "0.290" },
+                                              "attachments": {
+                                                "_values": [
+                                                  { "filename": { "_value": "username-filled.png" }, "uniformTypeIdentifier": { "_value": "public.png" } }
+                                                ]
+                                              }
+                                            },
+                                            {
+                                              "title": { "_value": "Tap Sign In" },
+                                              "activityType": { "_value": "com.apple.dt.xctest.activity-type.userCreated" },
+                                              "start":  { "_value": "2026-04-27T15:30:03Z" },
+                                              "duration": { "_type": { "_name": "Double" }, "_value": "0.120" }
+                                            },
+                                            {
+                                              "title": { "_value": "Verify dashboard visible" },
+                                              "activityType": { "_value": "com.apple.dt.xctest.activity-type.assertionFailure" },
+                                              "start":  { "_value": "2026-04-27T15:30:03.2Z" },
+                                              "duration": { "_type": { "_name": "Double" }, "_value": "0.832" }
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      {
+                                        "_type": { "_name": "ActionTestSummary" },
+                                        "name":       { "_value": "testSignInWithBiometric()" },
+                                        "identifier": { "_value": "AcmeUITests/AuthFlow/testSignInWithBiometric" },
+                                        "testStatus": { "_value": "Failure" },
+                                        "duration":   { "_type": { "_name": "Double" }, "_value": "5.140" },
+                                        "documentLocationInCreatingWorkspace": {
+                                          "url": { "_value": "file:///src/AcmeUITests/AuthFlow.swift#StartingLineNumber=38" }
+                                        },
+                                        "activitySummaries": {
+                                          "_values": [
+                                            {
+                                              "title": { "_value": "Open login screen" },
+                                              "start":  { "_value": "2026-04-27T15:30:05Z" },
+                                              "duration": { "_type": { "_name": "Double" }, "_value": "0.300" }
+                                            },
+                                            {
+                                              "title": { "_value": "Tap Use Face ID" },
+                                              "start":  { "_value": "2026-04-27T15:30:05.4Z" },
+                                              "duration": { "_type": { "_name": "Double" }, "_value": "0.120" }
+                                            },
+                                            {
+                                              "title": { "_value": "Wait for dashboard" },
+                                              "start":  { "_value": "2026-04-27T15:30:05.6Z" },
+                                              "duration": { "_type": { "_name": "Double" }, "_value": "4.700" },
+                                              "failureSummaryIDs": { "_values": ["fail-1"] },
+                                              "attachments": {
+                                                "_values": [
+                                                  { "filename": { "_value": "biometric-timeout.png" } }
+                                                ]
+                                              }
+                                            }
+                                          ]
+                                        },
+                                        "failureSummaries": {
+                                          "_values": [
+                                            {
+                                              "message":    { "_value": "XCTAssertTrue failed: Dashboard never appeared after Face ID prompt" },
+                                              "fileName":   { "_value": "AuthFlow.swift" },
+                                              "lineNumber": { "_value": "44" },
+                                              "issueType":  { "_value": "Test Assertion Failure" }
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "name": { "_value": "Cart" },
+                                  "subtests": {
+                                    "_values": [
+                                      {
+                                        "_type": { "_name": "ActionTestSummary" },
+                                        "name":       { "_value": "testAddItemToCart()" },
+                                        "identifier": { "_value": "AcmeUITests/Cart/testAddItemToCart" },
+                                        "testStatus": { "_value": "Success" },
+                                        "duration":   { "_type": { "_name": "Double" }, "_value": "0.842" },
+                                        "documentLocationInCreatingWorkspace": {
+                                          "url": { "_value": "file:///src/AcmeUITests/Cart.swift#StartingLineNumber=12" }
+                                        },
+                                        "activitySummaries": {
+                                          "_values": [
+                                            { "title": { "_value": "Open Shop" },     "start": { "_value": "2026-04-27T15:30:11Z" }, "duration": { "_value": "0.310" } },
+                                            { "title": { "_value": "Tap SKU-123" },   "start": { "_value": "2026-04-27T15:30:11.4Z" }, "duration": { "_value": "0.180" } },
+                                            { "title": { "_value": "Verify badge=1" },"start": { "_value": "2026-04-27T15:30:11.6Z" }, "duration": { "_value": "0.350" } }
+                                          ]
+                                        }
+                                      },
+                                      {
+                                        "_type": { "_name": "ActionTestSummary" },
+                                        "name":       { "_value": "testCheckoutSkippedOnTablet()" },
+                                        "identifier": { "_value": "AcmeUITests/Cart/testCheckoutSkippedOnTablet" },
+                                        "testStatus": { "_value": "Skipped" },
+                                        "duration":   { "_type": { "_name": "Double" }, "_value": "0.0" },
+                                        "documentLocationInCreatingWorkspace": {
+                                          "url": { "_value": "file:///src/AcmeUITests/Cart.swift#StartingLineNumber=46" }
+                                        }
+                                      },
+                                      {
+                                        "_type": { "_name": "ActionTestSummary" },
+                                        "name":       { "_value": "testKnownFailingPromo()" },
+                                        "identifier": { "_value": "AcmeUITests/Cart/testKnownFailingPromo" },
+                                        "testStatus": { "_value": "ExpectedFailure" },
+                                        "duration":   { "_type": { "_name": "Double" }, "_value": "1.20" },
+                                        "documentLocationInCreatingWorkspace": {
+                                          "url": { "_value": "file:///src/AcmeUITests/Cart.swift#StartingLineNumber=62" }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

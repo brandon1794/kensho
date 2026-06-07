@@ -1,0 +1,219 @@
+/* ==========================================================================
+   Kensho Design System — Colors & Type
+   --------------------------------------------------------------------------
+   Kensho is a test-report tool. It is a competitor to Allure Reports.
+   The aesthetic: technical, dense, confident — like a Linear / Vercel
+   dashboard crossed with the engineer-trust feel of Datadog & Sentry.
+   Blue = the brand & passing identity backbone. Green = success/checks.
+   Coral-red = failure. Amber = broken/flaky. Slate = skipped/neutral.
+   ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+
+:root {
+  /* ---------- BRAND (official) ---------- */
+  /* Kaizen Reports brand uses a vivid electric-blue + neon-green pair,
+     pulled from the official wordmark: stroke #0072FF + #00FF87 on dark. */
+  --brand-blue-50:  #E6F2FF;
+  --brand-blue-100: #CCE5FF;
+  --brand-blue-200: #99CBFF;
+  --brand-blue-300: #66B0FF;
+  --brand-blue-400: #3396FF;
+  --brand-blue-500: #0072FF;   /* primary brand blue */
+  --brand-blue-600: #005CCC;
+  --brand-blue-700: #004599;
+  --brand-blue-800: #002E66;
+  --brand-blue-900: #001733;
+
+  --brand-green-50:  #E6FFF3;
+  --brand-green-100: #B8FFDA;
+  --brand-green-200: #80FFC0;
+  --brand-green-300: #4DFFA6;
+  --brand-green-400: #00FF87;   /* secondary brand green (neon) */
+  --brand-green-500: #00CC6C;
+  --brand-green-600: #009951;
+  --brand-green-700: #006636;
+  --brand-green-800: #00331B;
+
+  /* ---------- TEST-STATUS SEMANTIC ---------- */
+  /* These are the most important colors in the system — every chart,
+     bar, donut, badge and row tint maps to one of these five. */
+  --status-passed:  #1FA864;   /* green  — passed */
+  --status-passed-bg: #EAFBF1;
+  --status-passed-fg: #0E5C39;
+  --status-passed-border: #C5E5D2;
+  --status-failed:  #E5484D;   /* coral  — failed */
+  --status-failed-bg: #FCEBEC;
+  --status-failed-fg: #8A1F23;
+  --status-failed-border: #F2C8CB;
+  --status-broken:  #F5A524;   /* amber  — broken / flaky */
+  --status-broken-bg: #FFF4DD;
+  --status-broken-fg: #7A4A00;
+  --status-broken-border: #F4DDA8;
+  --status-skipped: #94A3B8;   /* slate  — skipped */
+  --status-skipped-bg: #EEF1F6;
+  --status-skipped-fg: #4F5B72;
+  --status-skipped-border: #D9E0EC;
+  --status-unknown: #7C5CFF;   /* violet — unknown / not run */
+  --status-unknown-bg: #F1ECFF;
+
+  /* ---------- NEUTRALS (light) ---------- */
+  --bg:        #F7F8FB;        /* app canvas */
+  --bg-elev:   #FFFFFF;        /* cards */
+  --bg-sunken: #F1F3F8;        /* table headers, input wells */
+  --bg-hover:  #F4F6FA;
+  --line:      #E4E7EE;        /* hairline borders */
+  --line-strong: #CFD4DD;
+  --fg1:       #0B1220;        /* primary text */
+  --fg2:       #3A4254;        /* secondary text */
+  --fg3:       #6B7388;        /* tertiary / meta */
+  --fg4:       #94A0B5;        /* placeholder */
+
+  /* ---------- NEUTRALS (dark — sidebar, dark mode) ---------- */
+  --dark-bg:        #0B1220;
+  --dark-bg-elev:   #111A2E;
+  --dark-bg-sunken: #070C18;
+  --dark-line:      #1B253D;
+  --dark-line-strong: #28344F;
+  --dark-fg1:       #F2F5FA;
+  --dark-fg2:       #B7C0D2;
+  --dark-fg3:       #7C8AA6;
+
+  /* ---------- ACCENTS ---------- */
+  --accent: var(--brand-blue-500);
+  --accent-hover: var(--brand-blue-600);
+  --accent-soft: var(--brand-blue-50);
+  --focus-ring: 0 0 0 3px rgba(0,114,255,0.30);
+
+  /* ---------- TYPE — FAMILIES ---------- */
+  /* Manrope = display/UI; Inter = body/data; JetBrains Mono = code/logs/IDs */
+  --font-display: "Manrope", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-body:    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* ---------- TYPE — SCALE ---------- */
+  --fs-display: 40px;   --lh-display: 1.05; --tr-display: -0.025em;
+  --fs-h1: 28px;        --lh-h1: 1.15;      --tr-h1: -0.02em;
+  --fs-h2: 22px;        --lh-h2: 1.2;       --tr-h2: -0.015em;
+  --fs-h3: 18px;        --lh-h3: 1.3;       --tr-h3: -0.01em;
+  --fs-h4: 15px;        --lh-h4: 1.35;      --tr-h4: -0.005em;
+  --fs-body: 14px;      --lh-body: 1.5;
+  --fs-body-sm: 13px;   --lh-body-sm: 1.45;
+  --fs-meta: 12px;      --lh-meta: 1.4;
+  --fs-overline: 11px;  --lh-overline: 1.3;
+  --fs-mono: 13px;      --lh-mono: 1.5;
+  --fs-mono-sm: 12px;
+
+  /* ---------- SPACING (4px grid) ---------- */
+  --s-0: 0px;
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+  --s-20: 80px;
+
+  /* ---------- RADII ---------- */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-2xl: 20px;
+  --r-pill: 999px;
+
+  /* ---------- SHADOWS / ELEVATION ---------- */
+  --shadow-xs: 0 1px 1px rgba(11,18,32,0.04);
+  --shadow-sm: 0 1px 2px rgba(11,18,32,0.06), 0 1px 1px rgba(11,18,32,0.04);
+  --shadow-md: 0 4px 12px rgba(11,18,32,0.08), 0 1px 2px rgba(11,18,32,0.04);
+  --shadow-lg: 0 12px 32px rgba(11,18,32,0.12), 0 2px 6px rgba(11,18,32,0.06);
+  --shadow-xl: 0 24px 64px rgba(11,18,32,0.18), 0 4px 12px rgba(11,18,32,0.08);
+  --shadow-focus: 0 0 0 3px rgba(0,114,255,0.30);
+  --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(11,18,32,0.04);
+
+  /* ---------- MOTION ---------- */
+  --ease-out: cubic-bezier(.2,.7,.2,1);
+  --ease-in-out: cubic-bezier(.4,.0,.2,1);
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-slow: 280ms;
+
+  /* ---------- LAYOUT ---------- */
+  --sidebar-w: 240px;
+  --sidebar-w-collapsed: 64px;
+  --topbar-h: 56px;
+  --container-max: 1440px;
+}
+
+/* ==========================================================================
+   BASE / RESET
+   ========================================================================== */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--fg1);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ==========================================================================
+   SEMANTIC TYPE
+   ========================================================================== */
+.k-display, h1.k-display {
+  font-family: var(--font-display);
+  font-size: var(--fs-display);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tr-display);
+  font-weight: 800;
+  color: var(--fg1);
+}
+h1, .k-h1 { font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--tr-h1); font-weight: 700; margin: 0; color: var(--fg1); }
+h2, .k-h2 { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--tr-h2); font-weight: 700; margin: 0; color: var(--fg1); }
+h3, .k-h3 { font-family: var(--font-display); font-size: var(--fs-h3); line-height: var(--lh-h3); letter-spacing: var(--tr-h3); font-weight: 600; margin: 0; color: var(--fg1); }
+h4, .k-h4 { font-family: var(--font-display); font-size: var(--fs-h4); line-height: var(--lh-h4); letter-spacing: var(--tr-h4); font-weight: 600; margin: 0; color: var(--fg1); }
+p, .k-body { font-size: var(--fs-body); line-height: var(--lh-body); margin: 0; color: var(--fg2); }
+.k-body-sm { font-size: var(--fs-body-sm); line-height: var(--lh-body-sm); color: var(--fg2); }
+.k-meta { font-size: var(--fs-meta); line-height: var(--lh-meta); color: var(--fg3); }
+.k-overline {
+  font-size: var(--fs-overline);
+  line-height: var(--lh-overline);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--fg3);
+}
+code, kbd, samp, pre, .k-mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono);
+  line-height: var(--lh-mono);
+  font-feature-settings: "calt" 0, "ss01" 1;
+}
+.k-num {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ==========================================================================
+   STATUS HELPERS
+   ========================================================================== */
+.k-status-passed  { color: var(--status-passed); }
+.k-status-failed  { color: var(--status-failed); }
+.k-status-broken  { color: var(--status-broken); }
+.k-status-skipped { color: var(--status-skipped); }
+.k-status-unknown { color: var(--status-unknown); }
+
+.k-bg-passed  { background: var(--status-passed-bg); }
+.k-bg-failed  { background: var(--status-failed-bg); }
+.k-bg-broken  { background: var(--status-broken-bg); }
+.k-bg-skipped { background: var(--status-skipped-bg); }
+.k-bg-unknown { background: var(--status-unknown-bg); }

@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>10.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+
+    <PackageId>KaizenReport.Kensho.MSTest</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>KaizenReport</Authors>
+    <Company>KaizenReport</Company>
+    <Description>VSTest logger that emits the Kensho v1 JSON test-report format. Use with `dotnet test --logger kensho` to get a structured run.json + cases/*.json that the Kensho CLI converts into a self-contained HTML report.</Description>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/kaizenreport/kensho</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/kaizenreport/kensho</RepositoryUrl>
+    <PackageTags>kensho;kaizenreport;mstest;vstest;testing;test-report;reporter</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="17.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\dotnet-core\KaizenReport.Kensho.Core.csproj" />
+  </ItemGroup>
+
+</Project>

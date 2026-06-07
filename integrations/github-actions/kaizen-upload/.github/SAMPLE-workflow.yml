@@ -1,0 +1,55 @@
+# Sample workflow that runs Playwright e2e tests and uploads the resulting
+# Kensho report to a Kaizen workspace.
+#
+# Copy this file into your repo at `.github/workflows/e2e.yml` (or similar)
+# and adjust the workspace/project slugs.
+
+name: e2e + Kaizen upload
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  e2e:
+    name: Playwright + Kensho upload
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Run Playwright tests
+        # Assumes the @kaizenreport/kensho-playwright reporter is wired in
+        # playwright.config.ts so it writes ./kensho-results/.
+        run: pnpm exec playwright test
+
+      - name: Upload Kensho run to Kaizen
+        # Always run this step, even if tests fail — failed runs are
+        # the most interesting to triage in Kaizen.
+        if: always()
+        uses: kaizenreport/kaizen-upload@v1
+        with:
+          kensho-results-path: ./kensho-results
+          workspace-slug: my-org
+          project-slug: my-app
+          kaizen-token: ${{ secrets.KAIZEN_TOKEN }}
+          # live: true   # uncomment to stream events as they complete

@@ -1,0 +1,43 @@
+{
+  "id": "tc_2940652d4d9a0113",
+  "name": "Promo Codes Skipped",
+  "fullName": "Tests.Example.Promo Codes Skipped",
+  "filePath": "tests/example.robot",
+  "suite": [
+    "Tests",
+    "Example"
+  ],
+  "tags": [
+    "demo"
+  ],
+  "status": "skip",
+  "startedAt": "2026-04-27T17:32:02.078Z",
+  "duration": 1,
+  "retries": 0,
+  "platform": "darwin",
+  "line": 27,
+  "severity": "minor",
+  "behavior": {
+    "feature": "Kensho Robot Demo"
+  },
+  "steps": [
+    {
+      "id": "step_kw_3c0ffa3716",
+      "title": "BuiltIn.Skip",
+      "action": "group",
+      "status": "skip",
+      "startedAt": "2026-04-27T17:32:02.078Z",
+      "duration": 0,
+      "phase": "body",
+      "target": "feature not enabled in this environment",
+      "logs": [
+        {
+          "t": 0,
+          "level": "info",
+          "msg": "feature not enabled in this environment"
+        }
+      ]
+    }
+  ],
+  "finishedAt": "2026-04-27T17:32:02.079Z"
+}

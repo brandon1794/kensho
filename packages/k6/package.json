@@ -1,0 +1,37 @@
+{
+  "name": "@kaizenreport/kensho-k6",
+  "version": "0.1.0",
+  "description": "Kensho summary helper for k6 — turns k6's handleSummary(data) into Kensho v1 results.",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "dependencies": {
+    "@kaizenreport/kensho-schema": "workspace:*"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brandon1794/kensho.git",
+    "directory": "packages/k6"
+  },
+  "homepage": "https://github.com/brandon1794/kensho/tree/main/packages/k6#readme",
+  "bugs": {
+    "url": "https://github.com/brandon1794/kensho/issues"
+  }
+}

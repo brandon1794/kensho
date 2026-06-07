@@ -1,0 +1,13 @@
+{
+  "name": "kensho-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Kensho — open-source test report generator. Part of the KaizenReport platform.",
+  "type": "module",
+  "scripts": {
+    "demo": "pnpm --filter playwright-demo run seed && pnpm --filter @kaizenreport/kensho run generate --input ../../examples/playwright-demo/kensho-results --output ../../examples/playwright-demo/kensho-report && pnpm --filter @kaizenreport/kensho run open --report ../../examples/playwright-demo/kensho-report",
+    "validate": "node packages/cli/bin/kensho.js validate examples/playwright-demo/kensho-results",
+    "generate:demo": "node packages/cli/bin/kensho.js generate --input examples/playwright-demo/kensho-results --output examples/playwright-demo/kensho-report"
+  },
+  "license": "Apache-2.0"
+}

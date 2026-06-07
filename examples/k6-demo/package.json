@@ -1,0 +1,18 @@
+{
+  "name": "k6-demo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "k6 demo wired to the Kensho summary helper.",
+  "type": "module",
+  "scripts": {
+    "seed": "node ./scripts/seed-results.mjs",
+    "validate": "node ../../packages/cli/bin/kensho.js validate ./kensho-results",
+    "generate": "node ../../packages/cli/bin/kensho.js generate --input ./kensho-results --output ./kensho-report",
+    "open": "node ../../packages/cli/bin/kensho.js open --report ./kensho-report",
+    "demo": "pnpm run seed && pnpm run validate && pnpm run generate"
+  },
+  "dependencies": {
+    "@kaizenreport/kensho-k6": "workspace:*",
+    "@kaizenreport/kensho-schema": "workspace:*"
+  }
+}

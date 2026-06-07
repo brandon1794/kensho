@@ -1,0 +1,66 @@
+{
+  "name": "@kaizenreport/kensho-viewer",
+  "version": "0.1.0",
+  "description": "Static HTML/JS/CSS viewer bundled by the Kensho CLI into each generated report. Also exports an embeddable React component for the Kaizen platform.",
+  "type": "module",
+  "main": "index.html",
+  "files": [
+    "index.html",
+    "assets",
+    "src",
+    "scripts",
+    "dist",
+    "build.js",
+    "README.md"
+  ],
+  "exports": {
+    ".": "./index.html",
+    "./component": {
+      "types": "./dist/component.d.ts",
+      "import": "./dist/component.js",
+      "default": "./dist/component.js"
+    },
+    "./style.css": "./assets/tokens.css",
+    "./data": "./src/data.js",
+    "./assets/*": "./assets/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "node scripts/build.js",
+    "build:no-bundle": "node scripts/build.js --no-bundle",
+    "prepack": "node scripts/build.js"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-react": "^7.27.1",
+    "esbuild": "^0.24.0"
+  },
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brandon1794/kensho.git",
+    "directory": "packages/viewer"
+  },
+  "homepage": "https://github.com/brandon1794/kensho/tree/main/packages/viewer#readme",
+  "bugs": {
+    "url": "https://github.com/brandon1794/kensho/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

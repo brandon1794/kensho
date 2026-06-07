@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>10.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+
+    <PackageId>KaizenReport.Kensho.Core</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>KaizenReport</Authors>
+    <Company>KaizenReport</Company>
+    <Description>Shared core for the Kensho .NET adapters: schema POCOs, helper API (Kensho.Step / Attach / Label / Link), stable case-id hash, env capture, and JSON writer.</Description>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/kaizenreport/kensho</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/kaizenreport/kensho</RepositoryUrl>
+    <PackageTags>kensho;kaizenreport;testing;test-report;reporter</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="6.0.0" />
+  </ItemGroup>
+
+</Project>

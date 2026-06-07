@@ -1,0 +1,60 @@
+{
+  "id": "tc_7548848fbafa1791",
+  "name": "Logs Only",
+  "fullName": "Tests.Example.Logs Only",
+  "filePath": "tests/example.robot",
+  "suite": [
+    "Tests",
+    "Example"
+  ],
+  "tags": [
+    "demo"
+  ],
+  "status": "pass",
+  "startedAt": "2026-04-27T17:32:02.084Z",
+  "duration": 1,
+  "retries": 0,
+  "platform": "darwin",
+  "line": 39,
+  "severity": "trivial",
+  "behavior": {
+    "feature": "Kensho Robot Demo"
+  },
+  "steps": [
+    {
+      "id": "step_kw_d52887b65d",
+      "title": "BuiltIn.Log",
+      "action": "group",
+      "status": "pass",
+      "startedAt": "2026-04-27T17:32:02.084Z",
+      "duration": 0,
+      "phase": "body",
+      "target": "hello from log",
+      "logs": [
+        {
+          "t": 0,
+          "level": "info",
+          "msg": "hello from log"
+        }
+      ]
+    },
+    {
+      "id": "step_kw_41b66acab9",
+      "title": "BuiltIn.Log",
+      "action": "group",
+      "status": "pass",
+      "startedAt": "2026-04-27T17:32:02.084Z",
+      "duration": 0,
+      "phase": "body",
+      "target": "something to inspect",
+      "logs": [
+        {
+          "t": 0,
+          "level": "info",
+          "msg": "something to inspect"
+        }
+      ]
+    }
+  ],
+  "finishedAt": "2026-04-27T17:32:02.084Z"
+}

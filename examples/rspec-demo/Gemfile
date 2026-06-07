@@ -1,0 +1,11 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+# Use the local gem from the monorepo so editing kensho-rspec/lib reflects
+# in the demo without a re-install.
+gem 'kensho-rspec', path: '../../packages/rspec', require: false
+
+group :test do
+  gem 'rspec', '~> 3.12'
+end

@@ -1,0 +1,48 @@
+{
+  "name": "@kaizenreport/kensho-appium",
+  "version": "0.1.0",
+  "description": "Kensho adapter for Appium — WebdriverIO reporter and generic Node hook that emit kensho-results/ for cross-platform mobile (iOS + Android) test runs.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./reporter": "./src/reporter.js",
+    "./helpers": "./src/helpers.js"
+  },
+  "files": [
+    "index.js",
+    "src",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "webdriverio": ">=8.0.0",
+    "@wdio/reporter": ">=8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "webdriverio": {
+      "optional": true
+    },
+    "@wdio/reporter": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@kaizenreport/kensho-schema": "workspace:*"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brandon1794/kensho.git",
+    "directory": "packages/appium"
+  },
+  "homepage": "https://github.com/brandon1794/kensho/tree/main/packages/appium#readme",
+  "bugs": {
+    "url": "https://github.com/brandon1794/kensho/issues"
+  }
+}

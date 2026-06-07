@@ -1,0 +1,214 @@
+{
+  "id": "tc_eb01f5b8a65b6bb6",
+  "name": "Login Happy Path",
+  "fullName": "Tests.Example.Login Happy Path",
+  "filePath": "tests/example.robot",
+  "suite": [
+    "Tests",
+    "Example"
+  ],
+  "tags": [
+    "demo"
+  ],
+  "status": "pass",
+  "startedAt": "2026-04-27T17:32:02.069Z",
+  "duration": 7,
+  "retries": 0,
+  "platform": "darwin",
+  "line": 11,
+  "severity": "critical",
+  "owner": "alice",
+  "labels": {
+    "team": "growth"
+  },
+  "links": [
+    {
+      "kind": "jira",
+      "url": "https://jira.example.com/browse/PROJ-123",
+      "label": "PROJ-123"
+    }
+  ],
+  "behavior": {
+    "epic": "User onboarding",
+    "feature": "Authentication"
+  },
+  "description": "Sign in with valid credentials lands the user on /home.",
+  "steps": [
+    {
+      "id": "step_kw_a1ff1ce2c8",
+      "title": "Open Login Page",
+      "action": "group",
+      "status": "pass",
+      "startedAt": "2026-04-27T17:32:02.069Z",
+      "duration": 3,
+      "phase": "body",
+      "children": [
+        {
+          "id": "step_kw_6b382becf3",
+          "title": "BuiltIn.Log",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.069Z",
+          "duration": 0,
+          "phase": "body",
+          "target": "opening login page",
+          "logs": [
+            {
+              "t": 1,
+              "level": "info",
+              "msg": "opening login page"
+            }
+          ]
+        },
+        {
+          "id": "step_kw_b18e399c2f",
+          "title": "BuiltIn.Sleep",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.070Z",
+          "duration": 2,
+          "phase": "body",
+          "target": "1ms",
+          "logs": [
+            {
+              "t": 3,
+              "level": "info",
+              "msg": "Slept 1 millisecond."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "step_kw_1299a615f1",
+      "title": "Submit Credentials",
+      "action": "group",
+      "status": "pass",
+      "startedAt": "2026-04-27T17:32:02.072Z",
+      "duration": 2,
+      "phase": "body",
+      "target": "demo, demo",
+      "children": [
+        {
+          "id": "step_kw_b7c47ea662",
+          "title": "BuiltIn.Log",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.072Z",
+          "duration": 0,
+          "phase": "body",
+          "target": "submitting ${user}",
+          "logs": [
+            {
+              "t": 3,
+              "level": "info",
+              "msg": "submitting demo"
+            }
+          ]
+        },
+        {
+          "id": "step_kw_9a98d9093a",
+          "title": "BuiltIn.Sleep",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.072Z",
+          "duration": 2,
+          "phase": "body",
+          "target": "1ms",
+          "logs": [
+            {
+              "t": 5,
+              "level": "info",
+              "msg": "Slept 1 millisecond."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "step_kw_622ebc1002",
+      "title": "Verify Redirected To Home",
+      "action": "group",
+      "status": "pass",
+      "startedAt": "2026-04-27T17:32:02.074Z",
+      "duration": 1,
+      "phase": "body",
+      "children": [
+        {
+          "id": "step_kw_b7829fb98b",
+          "title": "BuiltIn.Log",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.074Z",
+          "duration": 0,
+          "phase": "body",
+          "target": "landed on /home",
+          "logs": [
+            {
+              "t": 5,
+              "level": "info",
+              "msg": "landed on /home"
+            }
+          ]
+        },
+        {
+          "id": "step_kw_96391bb221",
+          "title": "BuiltIn.Should Be Equal",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.074Z",
+          "duration": 0,
+          "phase": "body",
+          "target": "ok, ok"
+        }
+      ]
+    },
+    {
+      "id": "step_kw_225c7c013d",
+      "title": "Attach Session Dump",
+      "action": "group",
+      "status": "pass",
+      "startedAt": "2026-04-27T17:32:02.075Z",
+      "duration": 1,
+      "phase": "body",
+      "children": [
+        {
+          "id": "step_kw_ea313e46d7",
+          "title": "KenshoLib.Get Demo Fixtures Dir",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.075Z",
+          "duration": 0,
+          "phase": "body",
+          "logs": [
+            {
+              "t": 6,
+              "level": "info",
+              "msg": "${root} = /Users/boz1794/Desktop/Proyectos/kaizen-reports/kensho/examples/robot-demo/fixtures"
+            }
+          ]
+        },
+        {
+          "id": "step_kw_490e55a501",
+          "title": "KenshoLib.Attach Fixture",
+          "action": "group",
+          "status": "pass",
+          "startedAt": "2026-04-27T17:32:02.075Z",
+          "duration": 1,
+          "phase": "body",
+          "target": "${root}/session.txt, text, session-dump.txt"
+        }
+      ]
+    }
+  ],
+  "finishedAt": "2026-04-27T17:32:02.076Z",
+  "attachments": [
+    {
+      "id": "att_ec801ae7",
+      "kind": "text",
+      "relativePath": "attachments/tc_eb01f5b8a65b6bb6/att_ec801ae7_session-dump.txt",
+      "mimeType": "text/plain",
+      "sizeBytes": 96
+    }
+  ]
+}

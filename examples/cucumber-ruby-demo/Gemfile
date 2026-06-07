@@ -1,0 +1,10 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+gem 'kensho-cucumber-ruby', path: '../../packages/cucumber-ruby', require: false
+
+group :test do
+  gem 'cucumber', '~> 7.1'
+  gem 'ffi', '< 1.17'
+end

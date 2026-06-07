@@ -1,0 +1,357 @@
+/* Kensho Report — UI kit local tokens. Imports global system. */
+@import url("./colors_and_type.css");
+
+/* App shell — fixed-height grid; sidebar stays put, only right column scrolls */
+.app { display:grid; grid-template-columns: var(--sidebar-w) 1fr; height:100vh; overflow:hidden; background:var(--bg); color:var(--fg1); }
+.app.collapsed { grid-template-columns: var(--sidebar-w-collapsed) 1fr; }
+.app > .right-col { display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+.app > .right-col > .main { flex:1; overflow:auto; padding:24px; }
+
+/* ------- SIDEBAR (sticky, full-height) -------
+   Theme-aware: follows the report theme instead of being hardwired dark.
+   Light theme → light rail; dark theme → dark rail. Uses the same themed
+   tokens (--bg-sunken / --line / --fg*) the rest of the viewer uses, which
+   flip under html[data-theme="dark"]. */
+.sb { background: var(--bg-sunken); color: var(--fg2); display:flex; flex-direction:column; border-right:1px solid var(--line); height:100vh; overflow-y:auto; }
+.sb .brand { display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--line); }
+.sb .brand .name { font-family:var(--font-display); font-weight:800; font-size:18px; color:var(--fg1); letter-spacing:-.01em; }
+.sb .brand .name .accent { color: var(--brand-green-400); }
+.sb nav { padding:10px 8px; display:flex; flex-direction:column; gap:2px; flex:1; }
+.sb a { display:flex; align-items:center; gap:12px; height:36px; padding:0 12px; border-radius:var(--r-md); color:var(--fg2); text-decoration:none; font-size:13px; font-weight:500; cursor:pointer; transition:background var(--dur-fast),color var(--dur-fast); }
+.sb a:hover { background:var(--bg-hover); color:var(--fg1); }
+.sb a.active { background:color-mix(in srgb, var(--brand-blue-400) 16%, transparent); color:var(--fg1); box-shadow: inset 2px 0 0 var(--brand-blue-400); }
+.sb a svg { width:18px; height:18px; stroke-width:1.75; }
+.sb .foot { padding:12px 16px; border-top:1px solid var(--line); font-family:var(--font-mono); font-size:11px; color:var(--fg3); }
+
+/* ------- TOPBAR ------- */
+.tb { height:var(--topbar-h); background: rgba(255,255,255,.85); backdrop-filter: blur(12px); border-bottom:1px solid var(--line); display:flex; align-items:center; padding:0 24px; gap:16px; position:sticky; top:0; z-index:10; }
+.tb .crumb { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--fg2); font-family:var(--font-body); }
+.tb .crumb b { color:var(--fg1); font-weight:600; }
+.tb .crumb svg { width:14px; height:14px; color:var(--fg4); }
+.tb .grow { flex:1; }
+.tb .runsel { display:flex; align-items:center; gap:8px; height:32px; padding:0 12px; border:1px solid var(--line); border-radius:var(--r-md); background:#fff; font-family:var(--font-mono); font-size:12px; cursor:pointer; }
+.tb .runsel .dot { width:8px; height:8px; border-radius:999px; background:var(--status-passed); }
+.tb .runsel.fail .dot { background:var(--status-failed); }
+
+/* ------- BUTTONS ------- */
+.btn { font-family:var(--font-body); font-size:13px; font-weight:600; height:32px; padding:0 12px; border-radius:var(--r-md); display:inline-flex; align-items:center; gap:6px; border:1px solid transparent; cursor:pointer; transition:background var(--dur-fast); letter-spacing:-.005em; }
+.btn svg { width:14px; height:14px; }
+.btn:focus { outline:none; box-shadow:var(--shadow-focus); }
+.btn-primary { background:var(--brand-blue-500); color:#fff; }
+.btn-primary:hover { background:var(--brand-blue-600); }
+.btn-secondary { background:#fff; color:var(--fg1); border-color:var(--line); }
+.btn-secondary:hover { background:var(--bg-hover); border-color:var(--line-strong); }
+.btn-ghost { background:transparent; color:var(--fg2); }
+.btn-ghost:hover { background:var(--bg-hover); color:var(--fg1); }
+
+/* ------- CARDS ------- */
+.main { max-width:var(--container-max); }
+.card { background:#fff; border:1px solid var(--line); border-radius:var(--r-lg); padding:20px; }
+.card .hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.card .hd h3 { font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:700; color:var(--fg3); margin:0; }
+.card .hd .meta { font-size:12px; color:var(--fg3); font-family:var(--font-mono); }
+
+/* ------- BADGES ------- */
+.badge { display:inline-flex; align-items:center; gap:6px; height:22px; padding:0 9px; border-radius:999px; font-size:11px; font-weight:600; }
+.badge .dot { width:6px; height:6px; border-radius:999px; background:currentColor; }
+.b-passed { background:var(--status-passed-bg); color:var(--status-passed); }
+.b-failed { background:var(--status-failed-bg); color:var(--status-failed); }
+.b-broken { background:var(--status-broken-bg); color:var(--status-broken-fg); }
+.b-skipped { background:var(--status-skipped-bg); color:var(--status-skipped-fg); }
+
+/* ------- TEST ROW ------- */
+.trow { display:grid; grid-template-columns:24px 1fr 80px 90px 110px 24px; gap:0 12px; padding:0 16px; height:46px; align-items:center; border-bottom:1px solid var(--line); cursor:pointer; transition:background var(--dur-fast); }
+.trow:hover { background:var(--bg-hover); }
+.trow:last-child { border-bottom:0; }
+.trow .id { font-family:var(--font-mono); font-size:12.5px; color:var(--fg1); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.trow .id .ns { color:var(--fg3); }
+.trow .dur { font-family:var(--font-mono); font-size:12px; color:var(--fg2); font-variant-numeric:tabular-nums; }
+.s-icon { width:16px; height:16px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; color:#fff; font-size:9px; font-weight:700; }
+.s-icon.passed { background:var(--status-passed); }
+.s-icon.failed { background:var(--status-failed); }
+.s-icon.broken { background:var(--status-broken); }
+.s-icon.skipped { background:var(--status-skipped); }
+
+/* ------- STAT ------- */
+.statnum { font-family:var(--font-display); font-weight:800; font-size:48px; letter-spacing:-.025em; line-height:1; font-variant-numeric:tabular-nums; }
+.statlbl { font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--fg3); font-weight:600; margin-top:4px; }
+
+/* ------- ENV TABLE ------- */
+.env { display:grid; grid-template-columns:160px 1fr; }
+.env .k { padding:8px 0; color:var(--fg3); font-family:var(--font-mono); font-size:12px; border-bottom:1px solid var(--line); }
+.env .v { padding:8px 0; color:var(--fg1); font-family:var(--font-mono); font-size:12.5px; border-bottom:1px solid var(--line); }
+.env .k:last-of-type, .env .v:last-of-type { border-bottom:0; }
+
+/* ------- TABS ------- */
+.tabs { display:flex; gap:2px; border-bottom:1px solid var(--line); margin-bottom:18px; }
+.tab { padding:10px 14px; font-size:13px; font-weight:600; color:var(--fg3); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; transition:color var(--dur-fast); }
+.tab:hover { color:var(--fg1); }
+.tab.active { color:var(--fg1); border-bottom-color:var(--brand-blue-500); }
+
+/* ------- ACCENT-SOFT (selection) ------- */
+:root { --accent-soft: rgba(0,114,255,0.06); --bg-2: var(--bg-sunken); }
+
+/* ------- STEP TREE ------- */
+.step { border-left:2px solid var(--line); margin-left:6px; padding:6px 0 6px 14px; position:relative; }
+.step.passed { border-color:var(--status-passed); }
+.step.failed { border-color:var(--status-failed); }
+.step.broken { border-color:var(--status-broken); }
+.step .head { display:flex; align-items:center; gap:8px; font-size:13px; }
+.step .head .name { color:var(--fg1); font-weight:500; }
+.step .head .dur { font-family:var(--font-mono); font-size:11px; color:var(--fg3); margin-left:auto; }
+.step .body { margin-top:6px; padding-left:0; font-family:var(--font-mono); font-size:12px; color:var(--fg2); white-space:pre; }
+.step .children { margin-top:6px; }
+
+/* ------- LOG ------- */
+.log { background:#0B1220; color:#B7C0D2; border-radius:var(--r-md); padding:12px 14px; font-family:var(--font-mono); font-size:12px; line-height:1.55; overflow:auto; max-height:280px; }
+.log .ts { color:#5C6A86; margin-right:10px; }
+.log .lvl-info { color:#66B0FF; }
+.log .lvl-warn { color:#F5A524; }
+.log .lvl-err  { color:#FF7A7E; }
+
+/* utility */
+.row { display:flex; gap:8px; align-items:center; }
+.grow { flex:1; }
+
+/* ------- SPLIT HANDLE (resizable tree/detail divider) ------- */
+/* 8px wide invisible hit-area centered on a 1px line. The line thickens
+   to 3px (and switches to brand blue) on hover/focus/drag. */
+.kv-split-handle {
+  position: relative;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  outline: none;
+  user-select: none;
+  touch-action: none;
+  z-index: 1;
+}
+.kv-split-handle::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  margin-left: -0.5px;
+  background: var(--line);
+  transition: background var(--dur-fast), width var(--dur-fast), margin-left var(--dur-fast);
+  pointer-events: none;
+}
+.kv-split-handle:hover::before,
+.kv-split-handle:focus-visible::before,
+.kv-split-handle--active::before {
+  width: 3px;
+  margin-left: -1.5px;
+  background: var(--brand-blue-500);
+}
+.kv-split-handle:focus-visible {
+  /* keep focus visible for keyboard users without an outer halo */
+  outline: none;
+}
+
+/* Boot screen — shown before React loads */
+.kv-boot { display:flex; align-items:center; justify-content:center; flex-direction:column; gap:12px; height:100vh; }
+.kv-boot-mark { animation: kv-pulse 1.6s ease-in-out infinite; }
+.kv-boot-text { font-family:var(--font-mono); font-size:12px; color:var(--fg3); letter-spacing:.06em; text-transform:uppercase; }
+@keyframes kv-pulse { 0%,100% { opacity:0.45; transform:scale(1); } 50% { opacity:1; transform:scale(1.05); } }
+
+/* Theme toggle */
+.theme-toggle {
+  width:32px; height:32px; border-radius:var(--r-md);
+  border:1px solid var(--line); background:#fff;
+  display:inline-flex; align-items:center; justify-content:center;
+  cursor:pointer; color:var(--fg2);
+  transition:background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
+}
+.theme-toggle:hover { background:var(--bg-hover); color:var(--fg1); border-color:var(--line-strong); }
+.theme-toggle:focus { outline:none; box-shadow:var(--shadow-focus); }
+
+/* ==========================================================================
+   DARK THEME — applied via <html data-theme="dark">
+   ========================================================================== */
+html[data-theme="dark"] {
+  /* Kaizen brand dark — deep navy with the neon mint accent.
+     Matches the brand landing page treatment (改善 watermark + jade green
+     callout). The jade green is the same brand-green-400 the OSS report
+     already uses for status; we just lean into it harder in dark mode. */
+  --bg:        #050B17;     /* deep navy, near-black */
+  --bg-elev:   #0B1426;     /* card surface */
+  --bg-sunken: #03070F;     /* row stripes / inset wells */
+  --bg-hover:  #142037;
+  --line:      #1A2542;
+  --line-strong: #283758;
+  --fg1:       #F2F5FA;
+  --fg2:       #B7C0D2;
+  --fg3:       #7C8AA6;
+  --fg4:       #5A6B8A;
+  --bg-2:      #03070F;
+
+  --dark-bg:        #03070F;
+  --dark-bg-elev:   #0B1426;
+  --dark-line:      #1A2542;
+
+  /* Brand-green accent ramps into focus rings + selections so the dark
+     theme reads as "Kaizen mint" rather than the default Kaizen blue. */
+  --accent:        var(--brand-green-400);
+  --accent-soft:   rgba(0, 255, 135, 0.08);
+  --shadow-focus:  0 0 0 3px rgba(0, 255, 135, 0.20);
+
+  --status-passed-bg:  rgba(31,168,100,0.14);
+  --status-failed-bg:  rgba(229,72,77,0.16);
+  --status-broken-bg:  rgba(245,165,36,0.16);
+  --status-skipped-bg: rgba(148,163,184,0.14);
+  --status-unknown-bg: rgba(124,92,255,0.18);
+
+  --status-passed-fg:  #6FE0A6;
+  --status-failed-fg:  #FF9A9D;
+  --status-broken-fg:  #FFD082;
+  --status-skipped-fg: #C2CCE0;
+
+  --status-passed-border:  rgba(31,168,100,0.35);
+  --status-failed-border:  rgba(229,72,77,0.4);
+  --status-broken-border:  rgba(245,165,36,0.4);
+  --status-skipped-border: rgba(148,163,184,0.3);
+
+  --accent-soft: rgba(0,114,255,0.14);
+
+  --shadow-xs: 0 1px 1px rgba(0,0,0,0.3);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.35), 0 1px 1px rgba(0,0,0,0.25);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.35);
+}
+
+html[data-theme="dark"] body { background: var(--bg); color: var(--fg1); }
+html[data-theme="dark"] .app { background: var(--bg); color: var(--fg1); }
+
+html[data-theme="dark"] .tb {
+  background: rgba(5, 11, 23, 0.82);
+  backdrop-filter: blur(14px);
+  border-bottom-color: var(--line);
+}
+
+/* 改善 watermark — large faded glyph anchored to the bottom-left of the
+   right-column scroll area, just like the brand landing page. Decorative
+   only; pointer-events:none so it never intercepts clicks. */
+html[data-theme="dark"] .app > .right-col {
+  position: relative;
+}
+html[data-theme="dark"] .app > .right-col::before {
+  content: '改';
+  position: absolute;
+  left: -40px;
+  bottom: -60px;
+  font-family: var(--font-display, 'Manrope'), sans-serif;
+  font-size: 380px;
+  font-weight: 800;
+  color: var(--brand-green-400);
+  opacity: 0.025;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  letter-spacing: -0.05em;
+  line-height: 0.85;
+}
+html[data-theme="dark"] .app > .right-col > * { position: relative; z-index: 1; }
+
+/* Brand-green focus rings + selection in dark mode. */
+html[data-theme="dark"] .btn-primary {
+  background: var(--brand-green-500);
+  color: var(--brand-blue-900);
+}
+html[data-theme="dark"] .btn-primary:hover { background: var(--brand-green-400); }
+html[data-theme="dark"] ::selection { background: rgba(0, 255, 135, 0.30); color: #fff; }
+html[data-theme="dark"] .tb .crumb { color: var(--fg2); }
+html[data-theme="dark"] .tb .crumb b { color: var(--fg1); }
+html[data-theme="dark"] .tb .runsel {
+  background: var(--bg-elev);
+  border-color: var(--line);
+  color: var(--fg1);
+}
+
+html[data-theme="dark"] .btn-secondary {
+  background: var(--bg-elev);
+  border-color: var(--line);
+  color: var(--fg1);
+}
+html[data-theme="dark"] .btn-secondary:hover {
+  background: var(--bg-hover);
+  border-color: var(--line-strong);
+}
+html[data-theme="dark"] .btn-ghost { color: var(--fg2); }
+html[data-theme="dark"] .btn-ghost:hover { background: var(--bg-hover); color: var(--fg1); }
+
+html[data-theme="dark"] .theme-toggle {
+  background: var(--bg-elev);
+  border-color: var(--line);
+  color: var(--fg2);
+}
+html[data-theme="dark"] .theme-toggle:hover {
+  background: var(--bg-hover);
+  color: var(--brand-green-400);
+  border-color: var(--line-strong);
+}
+
+html[data-theme="dark"] .card {
+  background: var(--bg-elev);
+  border-color: var(--line);
+}
+html[data-theme="dark"] .card .hd h3,
+html[data-theme="dark"] .card .hd .meta { color: var(--fg3); }
+
+html[data-theme="dark"] .trow { border-bottom-color: var(--line); }
+html[data-theme="dark"] .trow:hover { background: var(--bg-hover); }
+html[data-theme="dark"] .trow .id { color: var(--fg1); }
+html[data-theme="dark"] .trow .id .ns { color: var(--fg3); }
+html[data-theme="dark"] .trow .dur { color: var(--fg2); }
+
+html[data-theme="dark"] .tabs { border-bottom-color: var(--line); }
+html[data-theme="dark"] .tab { color: var(--fg3); }
+html[data-theme="dark"] .tab:hover { color: var(--fg1); }
+html[data-theme="dark"] .tab.active { color: var(--fg1); border-bottom-color: var(--brand-blue-400); }
+
+html[data-theme="dark"] .env .k { color: var(--fg3); border-bottom-color: var(--line); }
+html[data-theme="dark"] .env .v { color: var(--fg1); border-bottom-color: var(--line); }
+
+html[data-theme="dark"] .statnum { color: var(--fg1); }
+html[data-theme="dark"] .statlbl { color: var(--fg3); }
+
+html[data-theme="dark"] .step { border-left-color: var(--line); }
+html[data-theme="dark"] .step .head .name { color: var(--fg1); }
+html[data-theme="dark"] .step .head .dur { color: var(--fg3); }
+html[data-theme="dark"] .step .body { color: var(--fg2); }
+
+html[data-theme="dark"] .log {
+  background: #04080F;
+  border: 1px solid var(--line);
+}
+
+html[data-theme="dark"] svg .grid-line,
+html[data-theme="dark"] svg .axis-line { stroke: var(--line); }
+html[data-theme="dark"] svg text.axis-label,
+html[data-theme="dark"] svg text.chart-label { fill: var(--fg3); }
+html[data-theme="dark"] svg text.chart-value { fill: var(--fg1); }
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select {
+  background: var(--bg-elev);
+  color: var(--fg1);
+  border-color: var(--line);
+}
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder { color: var(--fg4); }
+
+html[data-theme="dark"] ::-webkit-scrollbar { width: 10px; height: 10px; }
+html[data-theme="dark"] ::-webkit-scrollbar-track { background: var(--bg); }
+html[data-theme="dark"] ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 6px; }
+html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: var(--fg4); }
+
+body, .app, .tb, .card, .sb, .runsel, .btn, .theme-toggle, .trow, .step, .log, .env .k, .env .v {
+  transition: background var(--dur-base) var(--ease-out),
+              color var(--dur-base) var(--ease-out),
+              border-color var(--dur-base) var(--ease-out);
+}
