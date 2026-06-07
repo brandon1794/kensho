@@ -1,15 +1,19 @@
-# Release — publishes the .NET adapters to NuGet.org.
+# Release — publishes the .NET adapters to NuGet.org via Trusted Publishing.
 #
-# Manual trigger (workflow_dispatch). NuGet uses an API key (no OIDC here), so
-# it's gated on the NUGET_API_KEY secret and kept off the v* tag.
+# Manual trigger (workflow_dispatch). Uses OIDC (NuGet/login) — no API key.
 #
-# One-time setup: create a nuget.org account → API Keys → New, scope = Push for
-# packages "KaizenReport.Kensho.*" (or all), copy it, then:
-#   gh secret set NUGET_API_KEY --repo brandon1794/kensho
+# One-time setup on nuget.org → account → Trusted Publishing → New policy:
+#   Policy Name:      kensho-ci  (any name)
+#   Package Owner:    brandon1794
+#   Repository Owner: brandon1794
+#   Repository:       kensho
+#   Workflow File:    release-nuget.yml
+#   Environment:      (leave blank)
 #
-# Order matters: the shared Core package is packed/pushed first; the adapters
-# ProjectReference it, so their nupkgs declare a dependency on
-# KaizenReport.Kensho.Core and need it on NuGet first.
+# NOTE: the `user:` below must be your nuget.org username (assumed brandon1794).
+#
+# Order matters: the shared Core package is pushed first; the adapters
+# ProjectReference it, so their nupkgs depend on KaizenReport.Kensho.Core.
 
 name: Release (NuGet)
 
@@ -18,6 +22,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write # OIDC for NuGet Trusted Publishing
 
 jobs:
   nuget:
@@ -28,9 +33,14 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '8.0.x'
+      - name: NuGet login (OIDC trusted publishing)
+        uses: NuGet/login@v1
+        id: nuget-login
+        with:
+          user: brandon1794
       - name: Pack + push (Core first, then adapters)
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
         run: |
           set -e
           out=$(mktemp -d)
