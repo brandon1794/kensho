@@ -17,6 +17,6 @@
     "@kaizenreport/kensho-schema": "workspace:*"
   },
   "devDependencies": {
-    "jasmine": "^5.1.0"
+    "jasmine": "^6.3.0"
   }
 }
