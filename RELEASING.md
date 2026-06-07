@@ -106,8 +106,27 @@ One-time setup (account owner):
 > Untested in CI until those secrets exist — the GPG/passphrase wiring is the
 > usual fiddly part; first run may need a tweak.
 
-## NuGet (.NET) / RubyGems (Ruby) — lower priority
+## NuGet (.NET) — `release-nuget.yml` (manual)
 
-Manifests exist (`KaizenReport.Kensho.*` / `kensho-*.gemspec`). Same shape:
-registry account → API key as a CI secret → `dotnet nuget push` /
-`gem push` job on tag.
+Publishes `KaizenReport.Kensho.{Core,NUnit,MSTest,Xunit}`. Core is packed/pushed
+first (the adapters ProjectReference it). API-key based (no OIDC), so it's a
+manual `workflow_dispatch`.
+
+One-time setup:
+1. nuget.org account → **API Keys → Create** (scope: Push; glob `KaizenReport.Kensho.*` or all).
+2. `gh secret set NUGET_API_KEY --repo brandon1794/kensho`
+3. Actions → **Release (NuGet)** → Run.
+
+## RubyGems (Ruby) — `release-rubygems.yml` (manual)
+
+Publishes `kensho-rspec`, `kensho-cucumber-ruby`. API-key based, manual.
+
+One-time setup:
+1. rubygems.org → **Settings → API Keys → New** (scope: push rubygem).
+2. `gh secret set RUBYGEMS_API_KEY --repo brandon1794/kensho`
+3. If your account enforces MFA for API/gem signin, set each gem's MFA level to
+   "UI only" (or use an API key permitted to push). Then Actions → **Release
+   (RubyGems)** → Run.
+
+> Both are untested in CI until the keys exist — first run may need a small tweak
+> (same as Maven). Versions are bumped to 0.1.1 to match the other ecosystems.

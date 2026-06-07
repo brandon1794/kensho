@@ -1,0 +1,41 @@
+# Release — publishes the Ruby adapters to RubyGems.org.
+#
+# Manual trigger (workflow_dispatch). Uses a RubyGems API key.
+#
+# One-time setup: rubygems.org → Settings → API Keys → New (scope: push rubygem)
+# → copy the key, then:
+#   gh secret set RUBYGEMS_API_KEY --repo brandon1794/kensho
+# (If your RubyGems account has MFA "UI and API/gem signin" enforced, set the
+#  gem's MFA level to "UI only" or use an API key allowed for pushes.)
+
+name: Release (RubyGems)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rubygems:
+    name: Publish Ruby adapters
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+      - name: Build + push gems
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+        run: |
+          set -e
+          for dir in packages/rspec packages/cucumber-ruby; do
+            echo "::group::$dir"
+            cd "$dir"
+            gemspec=$(ls ./*.gemspec)
+            gem build "$gemspec"
+            gem push ./*.gem
+            cd - >/dev/null
+            echo "::endgroup::"
+          done

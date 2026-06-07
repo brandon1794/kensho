@@ -1,0 +1,53 @@
+# Release — publishes the .NET adapters to NuGet.org.
+#
+# Manual trigger (workflow_dispatch). NuGet uses an API key (no OIDC here), so
+# it's gated on the NUGET_API_KEY secret and kept off the v* tag.
+#
+# One-time setup: create a nuget.org account → API Keys → New, scope = Push for
+# packages "KaizenReport.Kensho.*" (or all), copy it, then:
+#   gh secret set NUGET_API_KEY --repo brandon1794/kensho
+#
+# Order matters: the shared Core package is packed/pushed first; the adapters
+# ProjectReference it, so their nupkgs declare a dependency on
+# KaizenReport.Kensho.Core and need it on NuGet first.
+
+name: Release (NuGet)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nuget:
+    name: Publish .NET adapters
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Pack + push (Core first, then adapters)
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          set -e
+          out=$(mktemp -d)
+          for proj in \
+            packages/dotnet-core/KaizenReport.Kensho.Core.csproj \
+            packages/nunit/KaizenReport.Kensho.NUnit.csproj \
+            packages/mstest/KaizenReport.Kensho.MSTest.csproj \
+            packages/xunit/KaizenReport.Kensho.Xunit.csproj ; do
+            echo "::group::pack $proj"
+            dotnet pack "$proj" -c Release -o "$out"
+            echo "::endgroup::"
+          done
+          # Push Core first so the adapters' dependency resolves, then the rest.
+          dotnet nuget push "$out/KaizenReport.Kensho.Core."*.nupkg \
+            --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          for pkg in "$out"/*.nupkg; do
+            case "$pkg" in *Kensho.Core.*) continue;; esac
+            dotnet nuget push "$pkg" \
+              --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          done

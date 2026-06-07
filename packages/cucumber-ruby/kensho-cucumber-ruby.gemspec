@@ -15,7 +15,7 @@ Gem::Specification.new do |spec|
     Each scenario becomes a Kensho case; each Gherkin step becomes a
     Kensho step.
   DESC
-  spec.homepage      = 'https://github.com/kaizenreport/kensho'
+  spec.homepage      = 'https://github.com/brandon1794/kensho'
   spec.license       = 'Apache-2.0'
   spec.required_ruby_version = '>= 2.6'
 
