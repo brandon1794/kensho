@@ -1,19 +1,30 @@
-// @kaizenreport/kensho-vitest — Vitest custom reporter. Walks the Vitest task
-// tree on onFinished() and writes kensho-results/run.json + cases/<id>.json.
+// @kaizenreport/kensho-vitest — Vitest custom reporter → kensho-results/.
+//
+// Supports both reporter APIs:
+//   • vitest 2.1+/3/4: onTestRunEnd(testModules) — the stable Reported Tasks API
+//     (TestModule / TestCase). This is what current Vitest invokes.
+//   • vitest 1.x–2.0: onFinished(files) — the legacy task-tree API (fallback).
+// A guard ensures only the first hook to fire writes the report.
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, relative } from 'node:path';
 import { emptyRun, computeTotals, stableCaseId, validateRun, envInfo } from '@kaizenreport/kensho-schema';
 
-// envInfo() is imported from @kaizenreport/kensho-schema below.
-
 function mapStatus(task) {
-  // Vitest task.result.state: 'pass' | 'fail' | 'skip' | 'todo' | 'only' | 'run'
+  // Legacy task.result.state: 'pass' | 'fail' | 'skip' | 'todo' | 'only' | 'run'
   const state = task?.result?.state;
   const mode = task?.mode;
   if (mode === 'skip' || mode === 'todo' || state === 'skip' || state === 'todo') return 'skip';
   if (state === 'pass') return 'pass';
   if (state === 'fail') return 'fail';
+  return 'broken';
+}
+
+function mapReportedState(state) {
+  // Reported Tasks API TestResult.state: 'passed' | 'failed' | 'skipped' | 'pending'
+  if (state === 'passed') return 'pass';
+  if (state === 'failed') return 'fail';
+  if (state === 'skipped' || state === 'pending') return 'skip';
   return 'broken';
 }
 
@@ -34,7 +45,6 @@ function severityFromTags(tags) {
 }
 
 function walkTests(task, suiteChain, out) {
-  // Vitest task types: 'suite' | 'test' | 'custom'
   if (task.type === 'suite') {
     const nextChain = task.name ? suiteChain.concat(task.name) : suiteChain;
     for (const child of task.tasks || []) walkTests(child, nextChain, out);
@@ -53,6 +63,7 @@ export default class KenshoVitestReporter {
     this.runId = opts.runId || ('run_' + new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14));
     this.startedAt = new Date().toISOString();
     this.casesById = new Map();
+    this._emitted = false;
   }
 
   onInit(/* ctx */) {
@@ -62,26 +73,82 @@ export default class KenshoVitestReporter {
     this.startedAt = new Date().toISOString();
   }
 
-  onFinished(files = [] /* , errors = [] */) {
+  // ── vitest 2.1+/3/4 — Reported Tasks API ────────────────────────────────
+  onTestRunEnd(testModules /* , unhandledErrors, reason */) {
+    if (this._emitted) return;
     try {
-      const collected = [];
-      for (const f of files || []) {
-        // File-level task: its own name is the file path; its tasks are describe/suite blocks.
-        walkTests(f, [], collected);
-        this._filePath = f.filepath || f.name;
+      for (const mod of testModules || []) {
+        const filePath = mod.moduleId ? relative(process.cwd(), mod.moduleId) : undefined;
+        for (const tc of mod.children.allTests()) {
+          const caseObj = this._toKenshoCaseReported(tc, filePath);
+          writeFileSync(resolve(this.casesDir, caseObj.id + '.json'), JSON.stringify(caseObj, null, 2));
+          this.casesById.set(caseObj.id, caseObj);
+        }
       }
-      for (const { task, suiteChain } of collected) {
-        const caseObj = this._toKenshoCase(task, suiteChain);
-        writeFileSync(
-          resolve(this.casesDir, caseObj.id + '.json'),
-          JSON.stringify(caseObj, null, 2),
-        );
-        this.casesById.set(caseObj.id, caseObj);
-      }
+      this._emitted = true;
       this._writeManifest();
     } catch (e) {
-      console.error('[kensho] vitest reporter failed:', e && e.message);
+      console.error('[kensho] vitest reporter (onTestRunEnd) failed:', (e && e.stack) || e);
     }
+  }
+
+  // ── vitest 1.x–2.0 — legacy task-tree API ───────────────────────────────
+  onFinished(files = [] /* , errors = [] */) {
+    if (this._emitted) return;
+    try {
+      const collected = [];
+      for (const f of files || []) walkTests(f, [], collected);
+      for (const { task, suiteChain } of collected) {
+        const caseObj = this._toKenshoCase(task, suiteChain);
+        writeFileSync(resolve(this.casesDir, caseObj.id + '.json'), JSON.stringify(caseObj, null, 2));
+        this.casesById.set(caseObj.id, caseObj);
+      }
+      this._emitted = true;
+      this._writeManifest();
+    } catch (e) {
+      console.error('[kensho] vitest reporter (onFinished) failed:', (e && e.stack) || e);
+    }
+  }
+
+  _uniqueId(fullName, filePath) {
+    let id = stableCaseId(fullName, filePath);
+    if (this.casesById.has(id)) {
+      let i = 2;
+      while (this.casesById.has(id + '_' + i)) i++;
+      id = id + '_' + i;
+    }
+    return id;
+  }
+
+  _toKenshoCaseReported(tc, filePath) {
+    const name = tc.name || 'unnamed';
+    const fullName = tc.fullName || name;
+    const suiteChain = fullName.includes(' > ') ? fullName.split(' > ').slice(0, -1) : [];
+    const id = this._uniqueId(fullName, filePath);
+    const res = (typeof tc.result === 'function' ? tc.result() : tc.result) || {};
+    const diag = (typeof tc.diagnostic === 'function' ? tc.diagnostic() : {}) || {};
+    const duration = Math.max(0, Math.round(diag.duration || 0));
+    const startMs = diag.startTime || Date.now();
+    const tags = extractInlineTags(name);
+    const errors = (res.errors || []).map(e => ({
+      message: String(e.message || e), stack: e.stack, type: e.name,
+    }));
+    return {
+      id, name, fullName, filePath,
+      suite: suiteChain,
+      tags,
+      severity: this.severityFromTag ? severityFromTags(tags) : undefined,
+      status: mapReportedState(res.state),
+      startedAt: new Date(startMs).toISOString(),
+      finishedAt: new Date(startMs + duration).toISOString(),
+      duration,
+      retries: diag.retryCount || 0,
+      platform: process.platform,
+      steps: [],
+      errors: errors.length ? errors : undefined,
+      attachments: [],
+      logs: [],
+    };
   }
 
   _toKenshoCase(task, suiteChain) {
@@ -90,53 +157,25 @@ export default class KenshoVitestReporter {
       ? relative(process.cwd(), task.file.filepath || task.file.name)
       : undefined;
     const fullName = suiteChain.concat(name).join(' › ');
-    let id = stableCaseId(fullName, filePath);
-    if (this.casesById.has(id)) {
-      let i = 2;
-      while (this.casesById.has(id + '_' + i)) i++;
-      id = id + '_' + i;
-    }
+    const id = this._uniqueId(fullName, filePath);
     const tags = extractInlineTags(name);
     const duration = Math.max(0, Math.round(task.result?.duration || 0));
     const startMs = task.result?.startTime || Date.now();
-    const startedAt = new Date(startMs).toISOString();
-
     const errors = (task.result?.errors || []).map(e => ({
-      message: String(e.message || e),
-      stack: e.stack,
-      type: e.name,
+      message: String(e.message || e), stack: e.stack, type: e.name,
     }));
-
-    // Nested tasks (e.g. test.each or custom child tasks) → Kensho steps.
-    const steps = [];
-    if (Array.isArray(task.tasks) && task.tasks.length) {
-      task.tasks.forEach((child, i) => {
-        const childStatus = mapStatus(child);
-        steps.push({
-          id: 'step_' + i + '_' + Math.random().toString(36).slice(2, 6),
-          title: child.name || `Step ${i + 1}`,
-          status: childStatus === 'fail' ? 'fail' : childStatus === 'skip' ? 'skip' : 'pass',
-          startedAt: new Date(child.result?.startTime || startMs).toISOString(),
-          duration: Math.max(0, Math.round(child.result?.duration || 0)),
-        });
-      });
-    }
-
     return {
-      id,
-      name,
-      fullName,
-      filePath,
+      id, name, fullName, filePath,
       suite: suiteChain,
       tags,
       severity: this.severityFromTag ? severityFromTags(tags) : undefined,
       status: mapStatus(task),
-      startedAt,
+      startedAt: new Date(startMs).toISOString(),
       finishedAt: new Date(startMs + duration).toISOString(),
       duration,
       retries: task.result?.retryCount || 0,
       platform: process.platform,
-      steps,
+      steps: [],
       errors: errors.length ? errors : undefined,
       attachments: [],
       logs: [],
