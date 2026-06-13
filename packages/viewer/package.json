@@ -45,7 +45,7 @@
   "devDependencies": {
     "@babel/core": "^7.29.7",
     "@babel/preset-react": "^7.27.1",
-    "esbuild": "^0.24.0"
+    "esbuild": "^0.28.1"
   },
   "license": "Apache-2.0",
   "publishConfig": {
