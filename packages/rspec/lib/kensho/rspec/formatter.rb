@@ -330,6 +330,27 @@ module Kensho
           case_obj['links'] = existing + scratch.links
         end
 
+        # Runtime annotations win over metadata-derived values.
+        unless scratch.behavior.empty?
+          existing = case_obj['behavior'] || {}
+          case_obj['behavior'] = existing.merge(scratch.behavior)
+        end
+        unless scratch.parameters.empty?
+          existing = case_obj['parameters'] || []
+          case_obj['parameters'] = existing + scratch.parameters
+        end
+        unless scratch.tags.empty?
+          existing = case_obj['tags'] || []
+          merged = existing.dup
+          scratch.tags.each { |t| merged << t unless merged.include?(t) }
+          case_obj['tags'] = merged
+        end
+        case_obj['severity']    = scratch.severity    if scratch.severity
+        case_obj['owner']       = scratch.owner       if scratch.owner
+        case_obj['description'] = scratch.description  if scratch.description
+        case_obj['flaky']       = true                if scratch.flaky
+        case_obj['muted']       = true                if scratch.muted
+
         # Stdout/stderr captured by RSpec is wired up by an around-each
         # hook (see Kensho::RSpec::Formatter.install_capture_hook) — see
         # below.

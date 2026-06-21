@@ -4,6 +4,8 @@ require 'json'
 require 'fileutils'
 require 'securerandom'
 require_relative '../_schema'
+require_relative 'state'
+require_relative 'helpers'
 
 # Cucumber 7+ formatter that emits Kensho v1 results.
 #
@@ -145,9 +147,20 @@ module Kensho
           worst_status: 'pass',
           first_error: nil,
           first_exception: nil,
-          attachments: []
+          attachments: [],
+          rt_labels: {},
+          rt_links: [],
+          rt_parameters: [],
+          rt_tags: [],
+          rt_behavior: {},
+          rt_severity: nil,
+          rt_owner: nil,
+          rt_description: nil,
+          flaky: false,
+          muted: false
         }
         @scratch[test_case.object_id] = scratch
+        Kensho::Cucumber::State.current = scratch
       end
 
       def on_test_step_finished(event)
@@ -243,8 +256,35 @@ module Kensho
 
         case_obj['attachments'] = scratch[:attachments] unless scratch[:attachments].empty?
 
+        # Runtime annotations (Kensho.* helpers) win over tag-derived values.
+        unless scratch[:rt_labels].empty?
+          case_obj['labels'] = (case_obj['labels'] || {}).merge(scratch[:rt_labels])
+        end
+        unless scratch[:rt_links].empty?
+          case_obj['links'] = (case_obj['links'] || []) + scratch[:rt_links]
+        end
+        unless scratch[:rt_parameters].empty?
+          case_obj['parameters'] = (case_obj['parameters'] || []) + scratch[:rt_parameters]
+        end
+        unless scratch[:rt_tags].empty?
+          existing = case_obj['tags'] || []
+          merged = existing.dup
+          scratch[:rt_tags].each { |t| merged << t unless merged.include?(t) }
+          case_obj['tags'] = merged
+        end
+        unless scratch[:rt_behavior].empty?
+          case_obj['behavior'] = (case_obj['behavior'] || {}).merge(scratch[:rt_behavior])
+        end
+        case_obj['severity']    = scratch[:rt_severity]    if scratch[:rt_severity]
+        case_obj['owner']       = scratch[:rt_owner]       if scratch[:rt_owner]
+        case_obj['description'] = scratch[:rt_description]  if scratch[:rt_description]
+        case_obj['flaky']       = true                     if scratch[:flaky]
+        case_obj['muted']       = true                     if scratch[:muted]
+
         @cases_by_id[case_obj['id']] = case_obj
         write_case(case_obj)
+      ensure
+        Kensho::Cucumber::State.current = nil
       end
 
       def on_test_run_finished
