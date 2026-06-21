@@ -7,6 +7,8 @@ import { mkdirSync, writeFileSync, copyFileSync, statSync, existsSync } from 'no
 import { dirname, resolve, basename, relative, extname } from 'node:path';
 import { createHash } from 'node:crypto';
 import { emptyRun, computeTotals, stableCaseId, validateRun, envInfo } from '@kaizenreport/kensho-schema';
+import { parseKenshoAnnotations, KENSHO_ANNOTATION_TYPES } from './annotations.js';
+export { kensho, parseKenshoAnnotations } from './annotations.js';
 
 const MIME_BY_EXT = {
   '.png':'image/png', '.jpg':'image/jpeg', '.jpeg':'image/jpeg',
@@ -142,7 +144,14 @@ export default class KenshoPlaywrightReporter {
       while (this.casesById.has(id + '_' + i)) i++;
       id = id + '_' + i;
     }
-    const tags = Array.from(new Set([...(test.tags || []), ...extractInlineTags(test.title)]));
+    // Fold in Kensho annotations (kensho.Feature / Severity / Tag / Link / …).
+    const meta = parseKenshoAnnotations(test.annotations);
+
+    const tags = Array.from(new Set([
+      ...(test.tags || []),
+      ...extractInlineTags(test.title),
+      ...meta.tags,
+    ]));
 
     const status = mapStatus(result?.status, test.expectedStatus);
 
@@ -150,6 +159,16 @@ export default class KenshoPlaywrightReporter {
     const steps = (result?.steps || [])
       .filter(s => s.category === 'test.step' || s.category === 'expect' || s.category === 'pw:api')
       .map((s, i) => toKenshoStep(s, i));
+    // Steps recorded via the fallback kensho.step path (no native test.step).
+    for (const s of meta.steps) {
+      steps.push({
+        id: 'step_meta_' + Math.random().toString(36).slice(2, 8),
+        title: s.title,
+        status: s.status,
+        startedAt: new Date().toISOString(),
+        duration: s.duration,
+      });
+    }
 
     // Attachments — copy into kensho-results/attachments/<caseId>/…
     const attachments = [];
@@ -179,6 +198,14 @@ export default class KenshoPlaywrightReporter {
       type: e.name,
     }));
 
+    // Labels: generic non-reserved annotations + kensho.Label() + behavior
+    // mirror (epic/feature/story). Runtime/derived precedence: kensho.Label
+    // wins over a plain annotation of the same key.
+    const labels = { ...labelsFromAnnotations(test.annotations), ...(meta.labels || {}) };
+    if (meta.behavior?.epic) labels.epic = meta.behavior.epic;
+    if (meta.behavior?.feature) labels.feature = meta.behavior.feature;
+    if (meta.behavior?.scenario) labels.story = meta.behavior.scenario;
+
     return {
       id,
       name: test.title,
@@ -187,9 +214,9 @@ export default class KenshoPlaywrightReporter {
       line: test.location?.line,
       suite: suiteChain,
       tags,
-      severity: this.severityFromTag ? severityFromTags(tags) : undefined,
-      owner: pickLabel(test.annotations, 'owner'),
-      labels: labelsFromAnnotations(test.annotations),
+      severity: meta.severity || (this.severityFromTag ? severityFromTags(tags) : undefined),
+      owner: meta.owner || pickLabel(test.annotations, 'owner'),
+      labels: Object.keys(labels).length ? labels : undefined,
       status,
       startedAt: toIso(result?.startTime) || new Date().toISOString(),
       finishedAt: toIso(result?.startTime, result?.duration) || new Date().toISOString(),
@@ -203,6 +230,12 @@ export default class KenshoPlaywrightReporter {
       errors: errors.length ? errors : undefined,
       attachments,
       logs: [], // Playwright doesn't surface console directly in the reporter; adapter-ext could add them
+      behavior: meta.behavior,
+      parameters: meta.parameters.length ? meta.parameters : undefined,
+      description: meta.description,
+      links: meta.links.length ? meta.links : undefined,
+      flaky: meta.flaky || undefined,
+      muted: meta.muted || undefined,
     };
   }
 }
@@ -268,6 +301,7 @@ function labelsFromAnnotations(annotations) {
   const out = {};
   for (const a of annotations || []) {
     if (!a?.type) continue;
+    if (KENSHO_ANNOTATION_TYPES.has(a.type)) continue; // handled by parseKenshoAnnotations
     if (a.description) out[a.type] = String(a.description);
   }
   return Object.keys(out).length ? out : undefined;

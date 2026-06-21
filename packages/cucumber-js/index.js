@@ -5,6 +5,9 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, relative } from 'node:path';
 import { emptyRun, computeTotals, stableCaseId, validateRun, envInfo } from '@kaizenreport/kensho-schema';
+import { kensho, _open, _drain, mergeCucumberMeta } from './kensho.js';
+
+export { kensho } from './kensho.js';
 
 // envInfo() is imported from @kaizenreport/kensho-schema below.
 
@@ -90,6 +93,8 @@ async function buildKenshoFormatter() {
         } else if (envelope.testCaseStarted) {
           this.testCaseStarted.set(envelope.testCaseStarted.id, envelope.testCaseStarted);
           this.stepResults.set(envelope.testCaseStarted.id, []);
+          // Open the scratch the kensho.* helpers in step defs will mutate.
+          _open();
         } else if (envelope.testStepFinished) {
           const arr = this.stepResults.get(envelope.testStepFinished.testCaseStartedId) || [];
           arr.push(envelope.testStepFinished);
@@ -183,6 +188,11 @@ async function buildKenshoFormatter() {
         attachments: [],
         logs: [],
       };
+
+      // Fold in the kensho.* helper scratch for this scenario (runtime values
+      // win; kensho.step entries land after the gherkin steps).
+      const buf = _drain();
+      if (buf) mergeCucumberMeta(caseObj, buf);
 
       try {
         writeFileSync(resolve(this.casesDir, id + '.json'), JSON.stringify(caseObj, null, 2));

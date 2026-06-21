@@ -4,8 +4,13 @@
   "description": "Kensho formatter for Cucumber-JS — writes kensho-results/ so the Kensho CLI can generate a rich HTML report.",
   "type": "module",
   "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./kensho": "./kensho.js"
+  },
   "files": [
     "index.js",
+    "kensho.js",
     "README.md"
   ],
   "peerDependencies": {
