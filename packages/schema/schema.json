@@ -123,7 +123,34 @@
         "parameters": { "type": "array", "items": { "$ref": "#/$defs/parameter" } },
         "description": { "type": "string" },
         "history": { "type": "array", "items": { "$ref": "#/$defs/historyEntry" } },
-        "links": { "type": "array", "items": { "$ref": "#/$defs/link" } }
+        "links": { "type": "array", "items": { "$ref": "#/$defs/link" } },
+        "flaky":   { "type": "boolean", "description": "Explicitly marked flaky by the adapter/test (kensho.flaky()). The viewer surfaces a flaky badge and the Flaky board lists it even with a single run." },
+        "muted":   { "type": "boolean", "description": "Known failure / muted (kensho.muted() or kensho.knownIssue()). A muted fail does not count against the run's pass gate; the viewer shows a muted badge. Pair with a link of kind 'issue' to link the tracker item." },
+        "category": { "type": "string", "description": "Failure category bucket. Set by a kensho.config.json category rule or by the generator's auto-clustering of similar errors. Drives the Categories tab." },
+        "sourceSnippet": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "A few lines of source around the failure site, captured by the generator from filePath:line so the report shows the failing code inline.",
+          "required": ["lines"],
+          "properties": {
+            "file": { "type": "string" },
+            "line": { "type": "integer", "minimum": 1 },
+            "lang": { "type": "string", "description": "Language hint for syntax styling (ts, js, py, java, …)." },
+            "lines": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["n", "text"],
+                "properties": {
+                  "n": { "type": "integer", "minimum": 1, "description": "1-based line number." },
+                  "text": { "type": "string" },
+                  "isError": { "type": "boolean", "description": "True for the failing line itself (highlighted)." }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "link": {

@@ -101,6 +101,20 @@ export interface KenshoCase {
   history?: KenshoHistoryEntry[];
   /** External links — Jira tickets, runbooks, design docs, PRs — chip-rendered. */
   links?: KenshoLink[];
+  /** Explicitly marked flaky (kensho.flaky()). Viewer shows a flaky badge. */
+  flaky?: boolean;
+  /** Known failure / muted (kensho.muted() / kensho.knownIssue()). A muted fail
+   *  doesn't count against the pass gate; pair with a kind:'issue' link. */
+  muted?: boolean;
+  /** Failure category bucket (config rule or generator auto-clustering). */
+  category?: string;
+  /** Source context around the failure, captured by the generator from filePath:line. */
+  sourceSnippet?: {
+    file?: string;
+    line?: number;
+    lang?: string;
+    lines: { n: number; text: string; isError?: boolean }[];
+  };
 }
 
 export interface KenshoParameter {
