@@ -313,7 +313,13 @@ function bucketToCase(b, buckets, subtests, usedIds) {
   usedIds.add(id);
 
   const suite = b.pkg ? b.pkg.split('/').filter(Boolean) : [];
-  const tags = Array.from(new Set([...extractTags(b.test), ...metaTags(b.meta)]));
+  // Strip a leading '@' from any tag (helper users and sub-test names both use
+  // the `@tag` convention) and de-duplicate.
+  const tags = Array.from(new Set(
+    [...extractTags(b.test), ...metaTags(b.meta)]
+      .map(s => String(s).replace(/^@+/, ''))
+      .filter(Boolean)
+  ));
 
   const status = mapStatus(b);
   const startedAt = b.startedAt || new Date().toISOString();
@@ -327,6 +333,18 @@ function bucketToCase(b, buckets, subtests, usedIds) {
   const parameters = metaParameters(b.meta);
   const behavior = metaBehavior(b.meta);
   const severity = metaSeverity(b.meta) || severityFromName(lastPart(b.test));
+  const owner = metaScalar(b.meta, 'owner');
+  const description = metaScalar(b.meta, 'description');
+  const flaky = b.meta.some(m => m && m.kind === 'flaky');
+  const muted = b.meta.some(m => m && m.kind === 'muted');
+
+  // Mirror epic/feature/story into labels so consumers that key off labels
+  // (the platform's behavior grouping) pick them up alongside behavior{}.
+  // `story` is sourced from the story/scenario meta that fed behavior.scenario.
+  const story = metaStory(b.meta);
+  if (behavior.epic && labels.epic == null) labels.epic = behavior.epic;
+  if (behavior.feature && labels.feature == null) labels.feature = behavior.feature;
+  if (story && labels.story == null) labels.story = story;
 
   let steps = metaSteps(b.meta);
 
@@ -364,6 +382,10 @@ function bucketToCase(b, buckets, subtests, usedIds) {
     platform: process.platform,
   };
   if (severity) caseObj.severity = severity;
+  if (owner) caseObj.owner = owner;
+  if (description) caseObj.description = description;
+  if (flaky) caseObj.flaky = true;
+  if (muted) caseObj.muted = true;
   if (Object.keys(behavior).length) caseObj.behavior = behavior;
   if (Object.keys(labels).length) caseObj.labels = labels;
   if (links.length) caseObj.links = links;
@@ -510,8 +532,29 @@ function metaParameters(meta) {
     .map(m => ({
       name: String(m.name),
       value: String(m.value ?? ''),
-      ...(m.paramKind ? { kind: String(m.paramKind) } : {}),
     }));
+}
+
+// metaScalar returns the last value for a single-valued meta kind (owner,
+// description, …) — last-write-wins, mirroring how labels behave.
+function metaScalar(meta, kind) {
+  let out;
+  for (const m of meta) {
+    if (m && m.kind === kind && m.value != null && String(m.value) !== '') out = String(m.value);
+  }
+  return out;
+}
+
+// metaStory returns the story value (from a story meta, falling back to a
+// scenario meta) so it can be mirrored into labels.story.
+function metaStory(meta) {
+  let story, scenario;
+  for (const m of meta) {
+    if (!m || !m.value) continue;
+    if (m.kind === 'story') story = String(m.value);
+    else if (m.kind === 'scenario') scenario = String(m.value);
+  }
+  return story || scenario;
 }
 
 function metaBehavior(meta) {
