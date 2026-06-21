@@ -76,6 +76,148 @@ public static class Kensho
         scratch.Logs.Add(new KenshoLog { T = t, Level = level, Msg = message });
     }
 
+    // ---- Behavior (epic / feature / story) -------------------------------
+    // These set the BDD behavior tree the viewer groups by, and also mirror
+    // into labels so consumers reading labels{} stay in sync. Story maps to
+    // behavior.scenario (the schema's leaf node) but label key "story".
+
+    public static void Epic(string value)
+    {
+        var scratch = Slot.Value;
+        if (scratch == null || string.IsNullOrEmpty(value)) return;
+        (scratch.Behavior ??= new KenshoBehavior()).Epic = value;
+        scratch.Labels["epic"] = value;
+    }
+
+    public static void Feature(string value)
+    {
+        var scratch = Slot.Value;
+        if (scratch == null || string.IsNullOrEmpty(value)) return;
+        (scratch.Behavior ??= new KenshoBehavior()).Feature = value;
+        scratch.Labels["feature"] = value;
+    }
+
+    public static void Story(string value)
+    {
+        var scratch = Slot.Value;
+        if (scratch == null || string.IsNullOrEmpty(value)) return;
+        (scratch.Behavior ??= new KenshoBehavior()).Scenario = value;
+        scratch.Labels["story"] = value;
+    }
+
+    // ---- Classification --------------------------------------------------
+
+    // Severity: validated against the schema enum; unknown values are ignored
+    // (no-op) rather than written, so the run.json stays valid.
+    public static void Severity(string value)
+    {
+        var scratch = Slot.Value;
+        if (scratch == null || string.IsNullOrEmpty(value)) return;
+        var lo = value.Trim().ToLowerInvariant();
+        if (Array.IndexOf(KenshoSchema.Severity, lo) < 0) return;
+        scratch.Severity = lo;
+    }
+
+    public static void Owner(string value)
+    {
+        var scratch = Slot.Value;
+        if (scratch == null || string.IsNullOrEmpty(value)) return;
+        scratch.Owner = value;
+    }
+
+    public static void Description(string value)
+    {
+        var scratch = Slot.Value;
+        if (scratch == null || value == null) return;
+        scratch.Description = value;
+    }
+
+    public static void Tag(string value)
+    {
+        var scratch = Slot.Value;
+        if (scratch == null || string.IsNullOrEmpty(value)) return;
+        scratch.Tags.Add(value);
+    }
+
+    // ---- Parameters ------------------------------------------------------
+    // Free-form name/value parameter (no kind — distinct from adapter-captured
+    // [TestCase] arguments which carry kind:"argument").
+    public static void Parameter(string name, string value)
+    {
+        var scratch = Slot.Value;
+        if (scratch == null || string.IsNullOrEmpty(name)) return;
+        scratch.Parameters.Add(new KenshoParameter
+        {
+            Name = name,
+            Value = value ?? string.Empty,
+        });
+    }
+
+    // ---- Links -----------------------------------------------------------
+    // Convenience link helpers with canonical kinds. The general Kensho.Link()
+    // above stays for arbitrary kinds.
+
+    public static void JiraLink(string idOrUrl, string? label = null)
+    {
+        var scratch = Slot.Value;
+        if (scratch == null || string.IsNullOrEmpty(idOrUrl)) return;
+        scratch.Links.Add(new KenshoLink
+        {
+            Url = idOrUrl,
+            Kind = "issue",
+            Label = string.IsNullOrEmpty(label) ? null : label,
+        });
+    }
+
+    public static void ReferenceLink(string url, string? label = null)
+    {
+        var scratch = Slot.Value;
+        if (scratch == null || string.IsNullOrEmpty(url)) return;
+        scratch.Links.Add(new KenshoLink
+        {
+            Url = url,
+            Kind = "reference",
+            Label = string.IsNullOrEmpty(label) ? null : label,
+        });
+    }
+
+    // ---- Markers ---------------------------------------------------------
+
+    // Flaky: flag the case as known-flaky. The listeners copy this onto
+    // case.flaky so the viewer renders a flaky badge.
+    public static void Flaky()
+    {
+        var scratch = Slot.Value;
+        if (scratch == null) return;
+        scratch.Flaky = true;
+    }
+
+    // Muted: known failure that shouldn't count against the pass gate.
+    public static void Muted()
+    {
+        var scratch = Slot.Value;
+        if (scratch == null) return;
+        scratch.Muted = true;
+    }
+
+    // KnownIssue: mute the case and attach an issue link pointing at the
+    // ticket, in one call.
+    public static void KnownIssue(string idOrUrl, string? label = null)
+    {
+        var scratch = Slot.Value;
+        if (scratch == null) return;
+        scratch.Muted = true;
+        if (!string.IsNullOrEmpty(idOrUrl))
+        {
+            scratch.Links.Add(new KenshoLink
+            {
+                Url = idOrUrl,
+                Kind = "issue",
+                Label = string.IsNullOrEmpty(label) ? null : label,
+            });
+        }
+    }
+
     private sealed class NoopStep : IDisposable
     {
         public static readonly NoopStep Instance = new();

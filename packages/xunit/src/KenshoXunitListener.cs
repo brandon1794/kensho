@@ -163,6 +163,7 @@ internal sealed class KenshoXunitState
                 c.Links ??= new List<KenshoLink>();
                 c.Links.AddRange(scratch.Links);
             }
+            MergeAnnotations(c, scratch);
         }
 
         _writer.AddCase(c);
@@ -282,6 +283,35 @@ internal sealed class KenshoXunitState
             }
         }
         if (tags.Count > 0) c.Tags = tags;
+    }
+
+    // Merge the static Kensho.* annotation values from the scratch onto the
+    // case. These take precedence over trait-derived values because the user
+    // set them explicitly inside the test body.
+    private static void MergeAnnotations(KenshoCase c, CaseScratch scratch)
+    {
+        if (scratch.Behavior != null)
+        {
+            c.Behavior ??= new KenshoBehavior();
+            if (!string.IsNullOrEmpty(scratch.Behavior.Epic)) c.Behavior.Epic = scratch.Behavior.Epic;
+            if (!string.IsNullOrEmpty(scratch.Behavior.Feature)) c.Behavior.Feature = scratch.Behavior.Feature;
+            if (!string.IsNullOrEmpty(scratch.Behavior.Scenario)) c.Behavior.Scenario = scratch.Behavior.Scenario;
+        }
+        if (!string.IsNullOrEmpty(scratch.Severity)) c.Severity = scratch.Severity;
+        if (!string.IsNullOrEmpty(scratch.Owner)) c.Owner = scratch.Owner;
+        if (!string.IsNullOrEmpty(scratch.Description)) c.Description = scratch.Description;
+        if (scratch.Tags.Count > 0)
+        {
+            c.Tags ??= new List<string>();
+            foreach (var t in scratch.Tags) if (!c.Tags.Contains(t)) c.Tags.Add(t);
+        }
+        if (scratch.Parameters.Count > 0)
+        {
+            c.Parameters ??= new List<KenshoParameter>();
+            c.Parameters.AddRange(scratch.Parameters);
+        }
+        if (scratch.Flaky) c.Flaky = true;
+        if (scratch.Muted) c.Muted = true;
     }
 
     private static IEnumerable<Attribute> CollectTraitAttributes(MethodInfo m)
