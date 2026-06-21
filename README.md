@@ -81,6 +81,30 @@ Want to see it first? Run the bundled demo (no browsers needed):
 pnpm install && cd examples/playwright-demo && pnpm run demo   # seed → generate → open
 ```
 
+## Annotations — Allure-parity metadata
+
+Every adapter where test code runs in a live runtime ships a `kensho` helper so you can attach rich metadata from inside a test — the same surface across **JavaScript/TypeScript (Playwright, Jest, Vitest, Cypress, Jasmine, Cucumber.js, Appium, Detox), Python (pytest, Robot), Java (JUnit 5, TestNG, Cucumber-JVM), .NET (NUnit, xUnit), Ruby (RSpec, Cucumber), and Go**:
+
+```ts
+import { test } from '@playwright/test';
+import { kensho } from '@kaizenreport/kensho-playwright';
+
+test('guest can check out', async ({ page }) => {
+  kensho.Epic('Commerce'); kensho.Feature('Checkout'); kensho.Story('Guest checkout');
+  kensho.Severity('critical'); kensho.Owner('payments-team');
+  kensho.Description('Buys a single item without an account.');   // rendered as Markdown
+  kensho.JiraLink('PROJ-123'); kensho.ReferenceLink('https://docs/checkout', 'Spec');
+  kensho.Parameter('currency', 'USD'); kensho.Tag('smoke');
+
+  await kensho.step('add to cart', async () => { /* … */ });
+
+  kensho.flaky();                         // marks the test flaky (badge + Flaky board)
+  kensho.knownIssue('PROJ-999');          // mutes a known failure + links the ticket
+});
+```
+
+`Epic/Feature/Story` build the **Behaviors** tree; `Severity/Owner/Description/Tag/Parameter` enrich the case; `Link/JiraLink/ReferenceLink` become typed link chips; `step()` nests into the step tree. Runtime **markers** — `flaky()`, `muted()`, `knownIssue(id)` — surface as badges and feed the Flaky board / pass-gate. Each language exposes the same set in its idiom (`kensho.Epic` / `kensho.epic`, Python `kensho.known_issue`, Go `kensho.KnownIssue(t, …)`, etc.). Every call is a no-op outside a running test.
+
 ## CLI
 
 ```
@@ -94,9 +118,13 @@ npx kensho <command>
 | `validate` | Check a results dir against the Kensho v1 schema |
 | `diff <prev> <cur>` | Terminal punch-list of new failures/fixes + optional static diff site |
 | `badge` | Emit an SVG status badge from a run |
+| `merge <dir…> --out <dir>` | Merge sharded/parallel `kensho-results/` dirs into one report |
+| `import-allure <dir> --out <dir>` | Convert an existing `allure-results/` into Kensho v1 — a one-command migration |
+| `summary <dir> [--format gh]` | Emit a Markdown run summary (PR comment / `$GITHUB_STEP_SUMMARY`) |
+| `export-junit <dir> --out <file>` | Emit JUnit XML from a results dir (interop / round-trip) |
 | `version` | Print the CLI + schema version |
 
-`generate` also resolves test-file owners from `.github/CODEOWNERS` (`--codeowners` / `--no-codeowners`).
+`generate` also resolves test-file owners from `.github/CODEOWNERS` (`--codeowners` / `--no-codeowners`), captures a **source snippet** around each failure, and buckets failures into **categories** (config rules in `kensho.config.json`, else auto-clustered by error signature). `--no-snippets` skips snippet capture.
 
 ## Adapters
 
@@ -181,7 +209,7 @@ Drop a `kensho.config.json` in your repo root:
 
 ## Viewer features
 
-Hash-routed deep links (`#/case/<id>`) · keyboard shortcuts (`?` overlay, `/` search, `j`/`k` nav, `g` chords) · Suites / Behaviors / Packages trees with a resizable splitter · Timeline · Flaky · History · Categories · real attachment rendering (image lightbox, `<video>`, typed downloads) · light/dark theme · one-click export. CSS is namespaced `kv-*` so it never collides with a host page.
+Hash-routed deep links (`#/case/<id>`) + **shareable filtered URLs** (search/status/tab restored from the hash) · keyboard shortcuts (`?` overlay, `/` search, `j`/`k` nav, `g` chords) · Suites / Behaviors / Packages trees with a resizable splitter · Timeline · Flaky · History · Categories · **Markdown descriptions** · **source-snippet-on-failure** (failing line highlighted) · **flaky / known-issue badges** (deep-linking to the tracker) · real attachment rendering (image lightbox, `<video>`, typed downloads, **Playwright trace** "Open trace") · theme-aware brand mark · light/dark theme · one-click export. CSS is namespaced `kv-*` so it never collides with a host page.
 
 ## Kensho vs. the KaizenReports platform
 

@@ -10,3 +10,18 @@ dist/.cache/
 
 # internal release runbook — not for the public repo
 RELEASING.md
+
+# .NET build output (the JS adapters keep a real bin/ entrypoint, so scope to
+# the .NET package dirs rather than ignoring bin/ globally)
+packages/dotnet-core/bin/
+packages/dotnet-core/obj/
+packages/nunit/bin/
+packages/nunit/obj/
+packages/xunit/bin/
+packages/xunit/obj/
+packages/mstest/bin/
+packages/mstest/obj/
+# Java build output
+packages/kensho-junit5/target/
+packages/kensho-testng/target/
+packages/kensho-cucumber-jvm/target/
