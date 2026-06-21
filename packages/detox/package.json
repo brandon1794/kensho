@@ -26,6 +26,7 @@
     }
   },
   "dependencies": {
+    "@kaizenreport/kensho-jest": "workspace:*",
     "@kaizenreport/kensho-schema": "workspace:*"
   },
   "engines": {

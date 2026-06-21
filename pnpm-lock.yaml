@@ -160,6 +160,9 @@ importers:
 
   packages/detox:
     dependencies:
+      '@kaizenreport/kensho-jest':
+        specifier: workspace:*
+        version: link:../jest
       '@kaizenreport/kensho-schema':
         specifier: workspace:*
         version: link:../schema

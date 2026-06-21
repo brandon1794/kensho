@@ -26,6 +26,36 @@ module.exports = {
 };
 ```
 
+## Annotation + runtime-marker API
+
+Inside a test, enrich the case with behavior, ownership, links, parameters,
+steps and runtime markers. Calls are no-ops outside a running test. Jest runs
+tests in workers, so annotations are flushed to a sidecar and merged by the
+reporter automatically.
+
+```js
+import { kensho } from '@kaizenreport/kensho-jest';
+
+test('logs in', async () => {
+  kensho.Epic('Auth');
+  kensho.Feature('Login');
+  kensho.Story('Happy path');
+  kensho.Severity('critical');
+  kensho.Owner('auth-team');
+  kensho.Description('A registered user can sign in.');
+  kensho.Tag('@smoke');
+  kensho.Link('https://example.com/spec', 'Spec');
+  kensho.JiraLink('PROJ-1', 'Tracking');
+  kensho.Parameter('env', 'staging');
+  await kensho.step('submit form', async () => { /* ... */ });
+  kensho.flaky();
+  kensho.knownIssue('PROJ-42'); // → muted + issue link
+});
+```
+
+Both capitalized (`Epic`) and lowercase (`epic`) forms are available. Runtime
+values win over tag-derived metadata.
+
 ## Run
 
 ```bash

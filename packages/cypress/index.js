@@ -5,6 +5,15 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, relative } from 'node:path';
 import { emptyRun, computeTotals, stableCaseId, validateRun, envInfo } from '@kaizenreport/kensho-schema';
+import { readAnnotations, mergeAnnotations } from './src/sidecar.js';
+export { kensho } from './src/annotations.js';
+export { registerKenshoTasks } from './src/task.js';
+
+// The `kensho` annotation + runtime-marker API runs in the browser
+// (./src/annotations.js) and ships records to Node via cy.task; the Node task
+// (registerKenshoTasks) writes a sidecar this reporter merges below. Users
+// `import { kensho } from '@kaizenreport/kensho-cypress'` in their specs and
+// call `registerKenshoTasks(on, config)` in setupNodeEvents.
 
 // envInfo() is imported from @kaizenreport/kensho-schema below.
 
@@ -55,6 +64,9 @@ export default class KenshoCypressReporter {
     this.runId = options.runId || ('run_' + new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14));
     this.startedAt = new Date().toISOString();
     this.casesById = new Map();
+    // Keep the sidecar dir aligned with this reporter's output so the Node task
+    // and the reporter read/write the same .annotations/ folder.
+    process.env.KENSHO_OUTPUT = options.output || 'kensho-results';
 
     mkdirSync(this.outputDir, { recursive: true });
     mkdirSync(this.casesDir, { recursive: true });
@@ -101,7 +113,7 @@ export default class KenshoCypressReporter {
       type: err.name,
     }] : undefined;
 
-    return {
+    const caseObj = {
       id,
       name: test.title || 'unnamed',
       fullName,
@@ -120,6 +132,7 @@ export default class KenshoCypressReporter {
       attachments: [],
       logs: [],
     };
+    return mergeAnnotations(caseObj, readAnnotations(this.outputDir, fullName));
   }
 
   _finalize() {

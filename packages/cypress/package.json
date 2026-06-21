@@ -4,8 +4,14 @@
   "description": "Kensho reporter for Cypress (Mocha runner) — writes kensho-results/ so the Kensho CLI can generate a rich HTML report.",
   "type": "module",
   "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./task": "./src/task.js",
+    "./annotations": "./src/annotations.js"
+  },
   "files": [
     "index.js",
+    "src",
     "README.md"
   ],
   "peerDependencies": {
