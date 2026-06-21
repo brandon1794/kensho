@@ -34,7 +34,7 @@ jobs:
     name: Publish npm packages
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       # No version — read from package.json "packageManager" (pnpm@10.x).
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v6
