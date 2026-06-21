@@ -1,6 +1,6 @@
 {
   "name": "@kaizenreport/kensho-xcuitest",
-  "version": "0.1.1",
+  "version": "0.3.0",
   "description": "Kensho adapter for XCUITest — converts an .xcresult bundle from `xcodebuild test` into kensho-results/ via xcrun xcresulttool.",
   "type": "module",
   "main": "src/parser.js",
@@ -19,7 +19,7 @@
     "@kaizenreport/kensho-schema": "workspace:*"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=18"
   },
   "license": "Apache-2.0",
   "publishConfig": {

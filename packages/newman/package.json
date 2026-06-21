@@ -1,6 +1,6 @@
 {
   "name": "newman-reporter-kensho",
-  "version": "0.1.1",
+  "version": "0.3.0",
   "description": "Kensho reporter for Newman — turns Postman collection runs into kensho-results/ for the Kensho CLI. (Published for Newman's reporter discovery; the canonical name is @kaizenreport/kensho-newman.)",
   "keywords": [
     "newman",
@@ -23,7 +23,7 @@
     }
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=18"
   },
   "license": "Apache-2.0",
   "publishConfig": {
