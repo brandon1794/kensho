@@ -23,36 +23,103 @@ function relTime(iso) {
 }
 const PAGE_NAMES = ['overview', 'suites', 'graphs', 'timeline', 'categories', 'flaky', 'behaviors', 'packages', 'history'];
 
-// Parse `#/case/<id>` or `#/page/<name>` (defaults: page=overview, no case).
+// Parse `#/case/<id>` or `#/page/<name>`, plus an optional `?…` query suffix
+// that carries the active search query, status filter, detail tab, and
+// category so filtered views are shareable. Defaults: page=overview, no case.
 function parseHash() {
-  const h = (window.location.hash || '').replace(/^#\/?/, '');
+  const raw = (window.location.hash || '').replace(/^#\/?/, '');
+  const qIdx = raw.indexOf('?');
+  const h = qIdx === -1 ? raw : raw.slice(0, qIdx);
+  const params = new URLSearchParams(qIdx === -1 ? '' : raw.slice(qIdx + 1));
+  const q = params.get('q') || '';
+  const status = params.get('status') || '';
+  const tab = params.get('tab') || '';
+  const cat = params.get('cat') || '';
+  const extra = {
+    q,
+    status,
+    tab,
+    cat
+  };
   if (!h) return {
     page: 'overview',
-    caseId: null
+    caseId: null,
+    ...extra
   };
   const parts = h.split('/');
   if (parts[0] === 'case' && parts[1]) return {
     page: null,
-    caseId: decodeURIComponent(parts[1])
+    caseId: decodeURIComponent(parts[1]),
+    ...extra
   };
   if (parts[0] === 'page' && parts[1] && PAGE_NAMES.includes(parts[1])) return {
     page: parts[1],
-    caseId: null
+    caseId: null,
+    ...extra
   };
   // Bare page name in hash (e.g. #suites) — accept for niceness.
   if (PAGE_NAMES.includes(parts[0])) return {
     page: parts[0],
-    caseId: null
+    caseId: null,
+    ...extra
   };
   return {
     page: 'overview',
-    caseId: null
+    caseId: null,
+    ...extra
   };
 }
 
+// Serialize the optional filter state into a `?…` query suffix (omitting
+// empty values to keep URLs clean).
+function buildHashQuery(extra) {
+  const p = new URLSearchParams();
+  if (extra?.q) p.set('q', extra.q);
+  if (extra?.status) p.set('status', extra.status);
+  if (extra?.tab) p.set('tab', extra.tab);
+  if (extra?.cat) p.set('cat', extra.cat);
+  const s = p.toString();
+  return s ? '?' + s : '';
+}
+
+// Read the current filter state off the hash (used by tree pages / categories
+// / detail to restore on load and to merge when one facet updates).
+function currentHashExtra() {
+  const {
+    q,
+    status,
+    tab,
+    cat
+  } = parseHash();
+  return {
+    q,
+    status,
+    tab,
+    cat
+  };
+}
+
+// Replace (not push) the filter facets on the current hash so back/forward
+// isn't polluted by every keystroke. Preserves the page/case prefix.
+function replaceHashExtra(patch) {
+  const raw = (window.location.hash || '').replace(/^#\/?/, '');
+  const qIdx = raw.indexOf('?');
+  const prefix = qIdx === -1 ? raw : raw.slice(0, qIdx);
+  const merged = {
+    ...currentHashExtra(),
+    ...patch
+  };
+  const next = '#/' + prefix + buildHashQuery(merged);
+  try {
+    history.replaceState(null, '', next);
+  } catch (_) {}
+}
+window.__kvReplaceHashExtra = replaceHashExtra;
+window.__kvCurrentHashExtra = currentHashExtra;
+
 // Build the long URL form so users can copy a permalink to a specific case.
-function caseHashHref(id) {
-  return '#/case/' + encodeURIComponent(id);
+function caseHashHref(id, extra) {
+  return '#/case/' + encodeURIComponent(id) + buildHashQuery(extra);
 }
 
 // SummaryKpi — single tile inside the Summary hero's KPI band. Used as a
@@ -373,7 +440,14 @@ function App() {
       if (ownKeyboard) {
         ctx?.onPageChange?.(p);
       } else {
-        const next = '#/page/' + p;
+        // Drop the per-detail tab facet when leaving a case; keep search /
+        // status / category so they round-trip across page navigation.
+        const ex = currentHashExtra();
+        const next = '#/page/' + p + buildHashQuery({
+          q: ex.q,
+          status: ex.status,
+          cat: ex.cat
+        });
         if (window.location.hash !== next) history.pushState(null, '', next);
       }
     };
@@ -382,7 +456,11 @@ function App() {
       if (ownKeyboard) {
         ctx?.onCaseOpen?.(testId);
       } else {
-        const next = caseHashHref(testId);
+        // Preserve the currently-selected detail tab when present so deep
+        // links keep landing on the same tab.
+        const next = caseHashHref(testId, {
+          tab: currentHashExtra().tab
+        });
         if (window.location.hash !== next) history.pushState(null, '', next);
       }
     };
@@ -895,6 +973,9 @@ function TestsCard({
       duration: t.dur,
       last: t.lastRun,
       retries: t.retries,
+      flaky: t.flaky,
+      muted: t.muted,
+      links: t.links,
       richId: t.id
     },
     onOpen: () => onOpen({

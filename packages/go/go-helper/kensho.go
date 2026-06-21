@@ -83,6 +83,22 @@ func Scenario(t testing.TB, value string) {
 	emit(t, map[string]any{"kind": "scenario", "value": value})
 }
 
+// Story records the behavior story (an alias of scenario used by some
+// teams; the converter folds it into behavior.scenario + labels.story).
+func Story(t testing.TB, value string) {
+	emit(t, map[string]any{"kind": "story", "value": value})
+}
+
+// Owner records the case owner (person/team responsible for the test).
+func Owner(t testing.TB, value string) {
+	emit(t, map[string]any{"kind": "owner", "value": value})
+}
+
+// Description sets a free-form description rendered on the case.
+func Description(t testing.TB, value string) {
+	emit(t, map[string]any{"kind": "description", "value": value})
+}
+
 // Label sets a free-form key/value on the case.
 func Label(t testing.TB, key, value string) {
 	emit(t, map[string]any{"kind": "label", "key": key, "value": value})
@@ -101,6 +117,66 @@ func Link(t testing.TB, url string, opts ...LinkOpts) {
 		}
 	}
 	emit(t, rec)
+}
+
+// JiraLink attaches a Jira issue link to the case. idOrUrl may be a bare
+// ticket id (PROJ-123) or a full URL; the converter records it as a link with
+// kind "issue". label overrides the displayed chip text (defaults to idOrUrl).
+func JiraLink(t testing.TB, idOrUrl string, label ...string) {
+	rec := map[string]any{"kind": "link", "url": idOrUrl, "linkKind": "issue"}
+	if l := firstNonEmpty(label); l != "" {
+		rec["label"] = l
+	} else {
+		rec["label"] = idOrUrl
+	}
+	emit(t, rec)
+}
+
+// ReferenceLink attaches a documentation/reference link to the case. The
+// converter records it as a link with kind "reference".
+func ReferenceLink(t testing.TB, url string, label ...string) {
+	rec := map[string]any{"kind": "link", "url": url, "linkKind": "reference"}
+	if l := firstNonEmpty(label); l != "" {
+		rec["label"] = l
+	}
+	emit(t, rec)
+}
+
+// Flaky marks the case as known-flaky. The viewer shows a flaky badge.
+func Flaky(t testing.TB) {
+	emit(t, map[string]any{"kind": "flaky"})
+}
+
+// Muted marks the case as muted (a known failure that doesn't count against
+// the pass gate). Pair with KnownIssue or JiraLink to record the tracking
+// ticket.
+func Muted(t testing.TB) {
+	emit(t, map[string]any{"kind": "muted"})
+}
+
+// KnownIssue marks the case as muted and records the tracking issue in one
+// call. idOrUrl may be a bare ticket id or a full URL; label overrides the
+// displayed chip text (defaults to idOrUrl). Emits a muted marker plus an
+// issue link.
+func KnownIssue(t testing.TB, idOrUrl string, label ...string) {
+	emit(t, map[string]any{"kind": "muted"})
+	rec := map[string]any{"kind": "link", "url": idOrUrl, "linkKind": "issue"}
+	if l := firstNonEmpty(label); l != "" {
+		rec["label"] = l
+	} else {
+		rec["label"] = idOrUrl
+	}
+	emit(t, rec)
+}
+
+// firstNonEmpty returns the first non-empty string from a variadic list.
+func firstNonEmpty(vals []string) string {
+	for _, v := range vals {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
 }
 
 // Parameter records a test parameter (e.g. table-driven inputs).

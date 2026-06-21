@@ -195,24 +195,106 @@ export const kensho = {
 
   /** Adds a string label to the current case. */
   label(key, value) {
-    if (!ctx.current || !key) return;
+    if (!ctx.current || key == null) return;
     const c = ctx.current.caseObj;
     c.labels = c.labels || {};
-    c.labels[String(key)] = String(value);
+    c.labels[String(key)] = String(value == null ? '' : value);
   },
 
-  /** Adds a hyperlink to the current case. */
+  /**
+   * Adds a hyperlink to the current case.
+   * Back-compat: `link(url, { kind, label })`. Also accepts `link(url, label)`.
+   */
   link(url, opts = {}) {
     if (!ctx.current || !url) return;
+    const o = typeof opts === 'string' ? { label: opts } : (opts || {});
     const c = ctx.current.caseObj;
     c.links = c.links || [];
-    c.links.push({
-      url: String(url),
-      kind: opts.kind,
-      label: opts.label,
-    });
+    c.links.push({ url: String(url), kind: o.kind || 'link', label: o.label });
+  },
+
+  // ---- structured metadata (BDD) ----
+  Epic(v)    { setBehavior('epic', v); },
+  Feature(v) { setBehavior('feature', v); },
+  Story(v)   { setBehavior('scenario', v); },
+
+  Severity(v) {
+    if (!ctx.current) return;
+    const s = String(v == null ? '' : v).toLowerCase();
+    if (KENSHO_SEVERITIES.includes(s)) ctx.current.caseObj.severity = s; // ignore unknown
+  },
+  Owner(v)       { if (ctx.current && v != null) ctx.current.caseObj.owner = String(v); },
+  Description(v) { if (ctx.current && v != null) ctx.current.caseObj.description = String(v); },
+
+  Tag(v) {
+    if (!ctx.current) return;
+    const t = cleanKenshoTag(v);
+    if (!t) return;
+    const c = ctx.current.caseObj;
+    c.tags = c.tags || [];
+    if (!c.tags.includes(t)) c.tags.push(t);
+  },
+  Label(key, value) { this.label(key, value); },
+
+  Link(url, name)     { this.link(url, { kind: 'link', label: name }); },
+  JiraLink(idOrUrl, name) {
+    if (!ctx.current || !idOrUrl) return;
+    const id = String(idOrUrl);
+    this.link(id, { kind: 'issue', label: name != null ? String(name) : id });
+  },
+  ReferenceLink(url, name) { this.link(url, { kind: 'reference', label: name }); },
+
+  Parameter(name, value) {
+    if (!ctx.current || name == null) return;
+    const c = ctx.current.caseObj;
+    c.parameters = c.parameters || [];
+    c.parameters.push({ name: String(name), value: String(value == null ? '' : value) });
+  },
+
+  // ---- runtime markers ----
+  Flaky() { if (ctx.current) ctx.current.caseObj.flaky = true; },
+  Muted() { if (ctx.current) ctx.current.caseObj.muted = true; },
+  KnownIssue(idOrUrl, label) {
+    if (!ctx.current) return;
+    ctx.current.caseObj.muted = true;
+    if (idOrUrl != null) {
+      const id = String(idOrUrl);
+      this.link(id, { kind: 'issue', label: label != null ? String(label) : id });
+    }
   },
 };
+
+// lowercase aliases
+kensho.epic = kensho.Epic;
+kensho.feature = kensho.Feature;
+kensho.story = kensho.Story;
+kensho.severity = kensho.Severity;
+kensho.owner = kensho.Owner;
+kensho.description = kensho.Description;
+kensho.tag = kensho.Tag;
+kensho.jiraLink = kensho.JiraLink;
+kensho.referenceLink = kensho.ReferenceLink;
+kensho.parameter = kensho.Parameter;
+kensho.flaky = kensho.Flaky;
+kensho.muted = kensho.Muted;
+kensho.knownIssue = kensho.KnownIssue;
+
+const KENSHO_SEVERITIES = ['blocker', 'critical', 'normal', 'minor', 'trivial'];
+
+function cleanKenshoTag(v) {
+  return String(v == null ? '' : v).replace(/^@+/, '').trim();
+}
+
+function setBehavior(key, value) {
+  if (!ctx.current || value == null) return;
+  const c = ctx.current.caseObj;
+  c.behavior = c.behavior || {};
+  c.behavior[key] = String(value);
+  // Mirror into labels {epic, feature, story}.
+  c.labels = c.labels || {};
+  const labelKey = key === 'scenario' ? 'story' : key;
+  c.labels[labelKey] = String(value);
+}
 
 function safeName(s) {
   return String(s).replace(/[^A-Za-z0-9._-]/g, '_').slice(0, 80);

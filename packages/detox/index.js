@@ -10,8 +10,14 @@ import { resolve, relative, basename } from 'node:path';
 import {
   emptyRun, computeTotals, stableCaseId, validateRun,
 } from '@kaizenreport/kensho-schema';
-import { _bind, _drain, kensho } from './src/helpers.js';
+import { _bind, _drain } from './src/helpers.js';
+import { kensho, readAnnotations, mergeAnnotations } from '@kaizenreport/kensho-jest';
 
+// Detox runs on Jest, so the full `kensho` annotation + runtime-marker API is
+// the same one the Jest adapter ships. Re-export it so users can
+// `import { kensho } from '@kaizenreport/kensho-detox'`. The in-process Detox
+// helpers (step/attach/label/link buffering for device artifacts) live in
+// ./src/helpers.js and are merged alongside the sidecar annotations below.
 export { kensho };
 
 function envFromCI() {
@@ -68,6 +74,9 @@ export default class KenshoDetoxReporter {
     this.runId = options.runId || ('run_' + new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14));
     this.startedAt = new Date().toISOString();
     this.casesById = new Map();
+    // Tell the Jest-based annotation API (running in worker processes) where to
+    // flush its sidecar files so this reporter can read them back.
+    process.env.KENSHO_OUTPUT = options.output || 'kensho-results';
     // Detox writes its artifacts into `artifacts/` by default; users can
     // override via reporter option.
     this.detoxArtifactsDir = options.screenshotsDir
@@ -169,7 +178,7 @@ export default class KenshoDetoxReporter {
     if (detox.configuration) labels.configuration = detox.configuration;
     if (detox.appVersion) labels.appVersion = detox.appVersion;
 
-    return {
+    const caseObj = {
       id,
       name,
       fullName,
@@ -191,6 +200,10 @@ export default class KenshoDetoxReporter {
       logs: [],
       links: buf.links.length ? buf.links : undefined,
     };
+    // Merge the Jest-based sidecar annotations (Epic/Feature/Severity/Owner/
+    // Tag/Link/Parameter/step + flaky/muted/knownIssue) on top of the
+    // in-process Detox helper buffer + device labels.
+    return mergeAnnotations(caseObj, readAnnotations(this.outputDir, fullName));
   }
 
   _scanDetoxArtifacts(fullName) {

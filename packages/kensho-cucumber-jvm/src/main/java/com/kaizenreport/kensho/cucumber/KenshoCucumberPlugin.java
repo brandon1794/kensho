@@ -276,6 +276,7 @@ public class KenshoCucumberPlugin implements ConcurrentEventListener {
       if (!ctx.logs.isEmpty()) caseObj.put("logs", ctx.logs);
       if (!ctx.scratch.labels.isEmpty()) caseObj.put("labels", ctx.scratch.labels);
       if (!ctx.scratch.links.isEmpty()) caseObj.put("links", ctx.scratch.links);
+      mergeScratchMetadata(caseObj, ctx.scratch);
 
       if (ctx.firstError != null) {
         List<Map<String, String>> errs = new ArrayList<>();
@@ -296,6 +297,50 @@ public class KenshoCucumberPlugin implements ConcurrentEventListener {
   }
 
   // ----- helpers ----- //
+
+  /**
+   * Merge runtime metadata captured via the {@link com.kaizenreport.kensho.Kensho} static API
+   * (behavior/severity/owner/description/tags/parameters/flaky/muted) into the case object. Runtime
+   * values supplement the scenario-derived values; for scalar fields the runtime call wins.
+   */
+  @SuppressWarnings("unchecked")
+  static void mergeScratchMetadata(Map<String, Object> caseObj, CaseScratch scratch) {
+    if (scratch == null) return;
+
+    if (!scratch.behavior.isEmpty()) {
+      Map<String, Object> existing = (Map<String, Object>) caseObj.get("behavior");
+      if (existing == null) {
+        caseObj.put("behavior", new LinkedHashMap<>(scratch.behavior));
+      } else {
+        existing.putAll(scratch.behavior);
+      }
+    }
+
+    if (scratch.severity != null) caseObj.put("severity", scratch.severity);
+    if (scratch.owner != null) caseObj.put("owner", scratch.owner);
+    if (scratch.description != null) caseObj.put("description", scratch.description);
+
+    if (!scratch.tags.isEmpty()) {
+      List<String> existing = (List<String>) caseObj.get("tags");
+      if (existing == null) {
+        caseObj.put("tags", new ArrayList<>(scratch.tags));
+      } else {
+        for (String t : scratch.tags) if (!existing.contains(t)) existing.add(t);
+      }
+    }
+
+    if (!scratch.parameters.isEmpty()) {
+      List<Map<String, String>> existing = (List<Map<String, String>>) caseObj.get("parameters");
+      if (existing == null) {
+        caseObj.put("parameters", new ArrayList<>(scratch.parameters));
+      } else {
+        existing.addAll(scratch.parameters);
+      }
+    }
+
+    if (scratch.flaky) caseObj.put("flaky", true);
+    if (scratch.muted) caseObj.put("muted", true);
+  }
 
   private String featureFromUri(URI uri) {
     if (uri == null) return "";

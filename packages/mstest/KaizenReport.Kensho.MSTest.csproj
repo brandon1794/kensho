@@ -8,7 +8,7 @@
     <NoWarn>$(NoWarn);CS1591</NoWarn>
 
     <PackageId>KaizenReport.Kensho.MSTest</PackageId>
-    <Version>0.1.2</Version>
+    <Version>0.3.0</Version>
     <Authors>KaizenReport</Authors>
     <Company>KaizenReport</Company>
     <Description>VSTest logger that emits the Kensho v1 JSON test-report format. Use with `dotnet test --logger kensho` to get a structured run.json + cases/*.json that the Kensho CLI converts into a self-contained HTML report.</Description>

@@ -14,7 +14,7 @@ import {
 import {
   envFromCI, deviceLabelsFromCaps, platformStringFromCaps, shortId, nowIso,
 } from './_schema.js';
-import { _bind, _drain } from './helpers.js';
+import { _bind, _drain, mergeAppiumMeta } from './helpers.js';
 
 let WDIOReporter;
 try {
@@ -176,6 +176,9 @@ export default class KenshoAppiumReporter extends WDIOReporter {
         logs: [],
         links: buf.links.length ? buf.links : undefined,
       };
+      // Fold in the rest of the kensho.* helper buffer (behavior/severity/
+      // owner/description/tags/parameters/flaky/muted). Runtime values win.
+      mergeAppiumMeta(caseObj, buf);
       writeFileSync(resolve(this.casesDir, caseObj.id + '.json'), JSON.stringify(caseObj, null, 2));
       this.casesById.set(caseObj.id, caseObj);
       this._activeId = null;

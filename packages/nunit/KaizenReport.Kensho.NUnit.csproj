@@ -8,7 +8,7 @@
     <NoWarn>$(NoWarn);CS1591</NoWarn>
 
     <PackageId>KaizenReport.Kensho.NUnit</PackageId>
-    <Version>0.1.2</Version>
+    <Version>0.3.0</Version>
     <Authors>KaizenReport</Authors>
     <Company>KaizenReport</Company>
     <Description>NUnit listener that emits the Kensho v1 JSON test-report format. Drop in, run your tests, and `npx kensho generate` produces a self-contained HTML report.</Description>

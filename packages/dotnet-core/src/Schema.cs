@@ -226,6 +226,12 @@ public sealed class KenshoCase
 
     [JsonPropertyName("links"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<KenshoLink>? Links { get; set; }
+
+    [JsonPropertyName("flaky"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? Flaky { get; set; }
+
+    [JsonPropertyName("muted"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? Muted { get; set; }
 }
 
 public sealed class KenshoStep

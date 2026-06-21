@@ -15,7 +15,7 @@
 // Both paths share the same `kensho.step / attach / label / link` helper API.
 
 import KenshoAppiumReporter from './src/reporter.js';
-import { kensho, _bind, _drain } from './src/helpers.js';
+import { kensho, _bind, _drain, mergeAppiumMeta } from './src/helpers.js';
 import {
   envFromCI, deviceLabelsFromCaps, platformStringFromCaps, nowIso,
 } from './src/_schema.js';
@@ -26,7 +26,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 export default KenshoAppiumReporter;
-export { KenshoAppiumReporter, kensho };
+export { KenshoAppiumReporter, kensho, mergeAppiumMeta };
 
 /**
  * Generic Node hook usable from any framework that doesn't run under wdio.
@@ -112,6 +112,9 @@ export class KenshoAppiumSession {
       logs: [],
       links: buf.links.length ? buf.links : undefined,
     };
+    // Fold in the rest of the kensho.* helper buffer (behavior/severity/owner/
+    // description/tags/parameters/flaky/muted). Runtime values win.
+    mergeAppiumMeta(caseObj, buf);
     writeFileSync(resolve(this.casesDir, caseObj.id + '.json'), JSON.stringify(caseObj, null, 2));
     this.casesById.set(caseObj.id, caseObj);
     this._activeId = null;

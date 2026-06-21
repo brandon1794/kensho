@@ -32,6 +32,10 @@ class CaseScratch:
         "logs",
         "labels",
         "links",
+        "parameters",
+        "flaky",
+        "muted",
+        "runtime",
     )
 
     def __init__(self, case_id: str, nodeid: str, started_at_ms: float) -> None:
@@ -46,6 +50,14 @@ class CaseScratch:
         self.logs: List[Dict[str, Any]] = []
         self.labels: Dict[str, str] = {}
         self.links: List[Dict[str, str]] = []
+        self.parameters: List[Dict[str, str]] = []
+        # Markers (flaky() / muted() / known_issue()).
+        self.flaky: bool = False
+        self.muted: bool = False
+        # Runtime overrides set via the ``kensho`` facade. These win over
+        # static markers when the case is finalized. Keys: severity, owner,
+        # description, epic, feature, scenario. Plus ``tags`` (list, appended).
+        self.runtime: Dict[str, Any] = {}
 
 
 # Threading note: pytest-xdist runs each worker in its own process, so a

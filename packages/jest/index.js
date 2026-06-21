@@ -4,6 +4,13 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, relative } from 'node:path';
 import { emptyRun, computeTotals, stableCaseId, validateRun, envInfo } from '@kaizenreport/kensho-schema';
+import { kensho, readAnnotations, mergeAnnotations } from './src/annotations.js';
+
+// Re-export the annotation + runtime-marker API so users can
+// `import { kensho } from '@kaizenreport/kensho-jest'` inside their tests.
+// readAnnotations/mergeAnnotations are also exported so adapters built on Jest
+// (e.g. @kaizenreport/kensho-detox) can reuse the same sidecar merge.
+export { kensho, readAnnotations, mergeAnnotations };
 
 // envInfo() is imported from @kaizenreport/kensho-schema below.
 
@@ -46,6 +53,9 @@ export default class KenshoJestReporter {
     this.runId = options.runId || ('run_' + new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14));
     this.startedAt = new Date().toISOString();
     this.casesById = new Map();
+    // Tell the annotation API (running in worker processes) where to flush its
+    // sidecar files so this reporter can read them back.
+    process.env.KENSHO_OUTPUT = options.output || 'kensho-results';
 
     mkdirSync(this.outputDir, { recursive: true });
     mkdirSync(this.casesDir, { recursive: true });
@@ -122,7 +132,7 @@ export default class KenshoJestReporter {
       stack: String(m),
     }));
 
-    return {
+    const caseObj = {
       id,
       name,
       fullName,
@@ -142,5 +152,6 @@ export default class KenshoJestReporter {
       attachments: [],
       logs: [],
     };
+    return mergeAnnotations(caseObj, readAnnotations(this.outputDir, fullName));
   }
 }

@@ -7,6 +7,259 @@
 
 // ----------- helpers -----------
 
+// ============================================================
+// KvMarkdown — a tiny, SAFE Markdown subset renderer.
+//
+// Supports: ATX headings (#..######), **bold**, *italic* / _italic_,
+// `inline code`, ```fenced code```, unordered (-, *, +) and ordered (1.)
+// lists, http(s)-only links [text](url), and hard line breaks. Everything
+// else is rendered as plain text. We NEVER use dangerouslySetInnerHTML — the
+// source is parsed into React elements, so HTML in the source is shown
+// verbatim (escaped by React) and javascript:/data: links are dropped.
+//
+// Zero deps. Output is wrapped in <div className="kv-md">.
+// ============================================================
+function _kvSafeHref(url) {
+  const u = String(url || '').trim();
+  // Only allow http(s) and protocol-relative / relative anchors; everything
+  // else (javascript:, data:, vbscript:, file:, …) is dropped.
+  if (/^https?:\/\//i.test(u)) return u;
+  if (/^(#|\/|\.\/|\.\.\/)/.test(u)) return u;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(u)) return null; // has a scheme we don't trust
+  return u; // bare relative path (e.g. docs/foo.md)
+}
+
+// Inline parser → array of React nodes. Handles `code`, **bold**, *italic*,
+// _italic_, and [text](href). Recurses for emphasis content.
+function _kvParseInline(text, keyPrefix) {
+  const nodes = [];
+  let rest = String(text);
+  let i = 0;
+  // Order matters: code first (so emphasis inside backticks is literal).
+  const TOKEN = /(`[^`]+`)|(\*\*[^*]+\*\*)|(__[^_]+__)|(\*[^*\n]+\*)|(_[^_\n]+_)|(\[[^\]]+\]\([^)\s]+\))/;
+  while (rest.length) {
+    const m = rest.match(TOKEN);
+    if (!m) {
+      nodes.push(rest);
+      break;
+    }
+    if (m.index > 0) nodes.push(rest.slice(0, m.index));
+    const tok = m[0];
+    const key = keyPrefix + '-' + i++;
+    if (tok.startsWith('`')) {
+      nodes.push(/*#__PURE__*/React.createElement("code", {
+        key: key,
+        className: "kv-md-code"
+      }, tok.slice(1, -1)));
+    } else if (tok.startsWith('**') || tok.startsWith('__')) {
+      nodes.push(/*#__PURE__*/React.createElement("strong", {
+        key: key
+      }, _kvParseInline(tok.slice(2, -2), key)));
+    } else if (tok.startsWith('*') || tok.startsWith('_')) {
+      nodes.push(/*#__PURE__*/React.createElement("em", {
+        key: key
+      }, _kvParseInline(tok.slice(1, -1), key)));
+    } else {
+      // link [text](href)
+      const lm = tok.match(/^\[([^\]]+)\]\(([^)\s]+)\)$/);
+      const href = lm ? _kvSafeHref(lm[2]) : null;
+      if (lm && href) {
+        nodes.push(/*#__PURE__*/React.createElement("a", {
+          key: key,
+          href: href,
+          target: "_blank",
+          rel: "noopener noreferrer nofollow"
+        }, lm[1]));
+      } else {
+        nodes.push(tok); // unsafe href → render the literal text
+      }
+    }
+    rest = rest.slice(m.index + tok.length);
+  }
+  return nodes;
+}
+function KvMarkdown({
+  source
+}) {
+  const src = String(source == null ? '' : source);
+  if (!src.trim()) return null;
+  const lines = src.replace(/\r\n?/g, '\n').split('\n');
+  const blocks = [];
+  let i = 0;
+  let bi = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    // Fenced code block.
+    const fence = line.match(/^```\s*([\w.-]*)\s*$/);
+    if (fence) {
+      const lang = fence[1] || '';
+      const buf = [];
+      i++;
+      while (i < lines.length && !/^```\s*$/.test(lines[i])) {
+        buf.push(lines[i]);
+        i++;
+      }
+      i++; // skip closing fence
+      blocks.push(/*#__PURE__*/React.createElement("pre", {
+        key: 'b' + bi++,
+        className: "kv-md-pre",
+        "data-lang": lang || undefined
+      }, /*#__PURE__*/React.createElement("code", null, buf.join('\n'))));
+      continue;
+    }
+    // Heading.
+    const h = line.match(/^(#{1,6})\s+(.*)$/);
+    if (h) {
+      const level = h[1].length;
+      const Tag = 'h' + Math.min(6, level + 1); // shift so report H1 stays unique
+      blocks.push(React.createElement(Tag, {
+        key: 'b' + bi++,
+        className: 'kv-md-h kv-md-h' + level
+      }, _kvParseInline(h[2], 'h' + bi)));
+      i++;
+      continue;
+    }
+    // Unordered list.
+    if (/^\s*[-*+]\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*[-*+]\s+/.test(lines[i])) {
+        items.push(lines[i].replace(/^\s*[-*+]\s+/, ''));
+        i++;
+      }
+      blocks.push(/*#__PURE__*/React.createElement("ul", {
+        key: 'b' + bi++,
+        className: "kv-md-ul"
+      }, items.map((it, k) => /*#__PURE__*/React.createElement("li", {
+        key: k
+      }, _kvParseInline(it, 'ul' + bi + '-' + k)))));
+      continue;
+    }
+    // Ordered list.
+    if (/^\s*\d+\.\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
+        items.push(lines[i].replace(/^\s*\d+\.\s+/, ''));
+        i++;
+      }
+      blocks.push(/*#__PURE__*/React.createElement("ol", {
+        key: 'b' + bi++,
+        className: "kv-md-ol"
+      }, items.map((it, k) => /*#__PURE__*/React.createElement("li", {
+        key: k
+      }, _kvParseInline(it, 'ol' + bi + '-' + k)))));
+      continue;
+    }
+    // Blank line → block separator.
+    if (line.trim() === '') {
+      i++;
+      continue;
+    }
+    // Paragraph — gather consecutive non-blank, non-special lines. Two spaces
+    // at EOL (or a single newline within the paragraph) become a hard break.
+    const para = [];
+    while (i < lines.length && lines[i].trim() !== '' && !/^```/.test(lines[i]) && !/^(#{1,6})\s+/.test(lines[i]) && !/^\s*[-*+]\s+/.test(lines[i]) && !/^\s*\d+\.\s+/.test(lines[i])) {
+      para.push(lines[i]);
+      i++;
+    }
+    const children = [];
+    para.forEach((p, k) => {
+      if (k > 0) children.push(/*#__PURE__*/React.createElement("br", {
+        key: 'br' + k
+      }));
+      children.push(/*#__PURE__*/React.createElement(React.Fragment, {
+        key: 'f' + k
+      }, _kvParseInline(p.replace(/\s+$/, ''), 'p' + bi + '-' + k)));
+    });
+    blocks.push(/*#__PURE__*/React.createElement("p", {
+      key: 'b' + bi++,
+      className: "kv-md-p"
+    }, children));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "kv-md"
+  }, blocks);
+}
+
+// ============================================================
+// KvSourceSnippet — renders case.sourceSnippet as a code block with line
+// numbers, the failing line highlighted, and a language label. Renders
+// nothing when no snippet is present.
+// ============================================================
+function KvSourceSnippet({
+  snippet
+}) {
+  if (!snippet || !Array.isArray(snippet.lines) || snippet.lines.length === 0) return null;
+  const lang = snippet.lang || '';
+  const fileLabel = snippet.file ? snippet.file + (snippet.line ? ':' + snippet.line : '') : snippet.line ? 'line ' + snippet.line : '';
+  return /*#__PURE__*/React.createElement("div", {
+    className: "kv-snippet"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "kv-snippet-hd"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "kv-snippet-file"
+  }, fileLabel || 'source'), lang && /*#__PURE__*/React.createElement("span", {
+    className: "kv-snippet-lang"
+  }, lang)), /*#__PURE__*/React.createElement("pre", {
+    className: "kv-snippet-body"
+  }, /*#__PURE__*/React.createElement("code", null, snippet.lines.map((ln, idx) => /*#__PURE__*/React.createElement("div", {
+    key: idx,
+    className: 'kv-snippet-row' + (ln.isError ? ' kv-snippet-row--error' : '')
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "kv-snippet-gutter"
+  }, ln.n != null ? ln.n : ''), /*#__PURE__*/React.createElement("span", {
+    className: "kv-snippet-code"
+  }, ln.text != null ? ln.text : ''))))));
+}
+
+// ============================================================
+// KvMarker — small inline badges for flaky / muted ("known issue") state.
+// `muted` deep-links to the case's kind:'issue' link when one exists.
+// Renders nothing when neither flag is set.
+//   <KvMarker flaky muted links={test.links} size="sm" />
+// ============================================================
+function _kvIssueLink(links) {
+  return (links || []).find(l => (l.kind || '').toLowerCase() === 'issue') || null;
+}
+function KvMarker({
+  flaky,
+  muted,
+  links,
+  size
+}) {
+  if (!flaky && !muted) return null;
+  const cls = 'kv-marker' + (size === 'sm' ? ' kv-marker--sm' : '');
+  const issue = muted ? _kvIssueLink(links) : null;
+  return /*#__PURE__*/React.createElement("span", {
+    className: "kv-marker-group",
+    style: {
+      display: 'inline-flex',
+      gap: 5,
+      alignItems: 'center'
+    }
+  }, flaky && /*#__PURE__*/React.createElement("span", {
+    className: cls + ' kv-marker--flaky',
+    title: "Flagged flaky by the test (kensho.flaky())"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "activity",
+    size: size === 'sm' ? 10 : 11
+  }), "flaky"), muted && (issue ? /*#__PURE__*/React.createElement("a", {
+    className: cls + ' kv-marker--muted',
+    href: _kvSafeHref(issue.url) || '#',
+    target: "_blank",
+    rel: "noopener noreferrer",
+    title: `Known issue · ${issue.label || issue.url}`,
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "shield-alert",
+    size: size === 'sm' ? 10 : 11
+  }), "known issue") : /*#__PURE__*/React.createElement("span", {
+    className: cls + ' kv-marker--muted',
+    title: "Muted / known issue (kensho.muted())"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "shield-alert",
+    size: size === 'sm' ? 10 : 11
+  }), "known issue")));
+}
 const SEVERITY_COLORS = {
   blocker: {
     bg: 'var(--status-failed-bg)',
@@ -471,7 +724,11 @@ function TestHeader({
       letterSpacing: -0.3,
       lineHeight: 1.2
     }
-  }, test.title)), (test.tags?.length > 0 || test.links?.length > 0) && /*#__PURE__*/React.createElement("div", {
+  }, test.title), /*#__PURE__*/React.createElement(KvMarker, {
+    flaky: test.flaky,
+    muted: test.muted,
+    links: test.links
+  })), (test.tags?.length > 0 || test.links?.length > 0) && /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 6,
@@ -1054,5 +1311,8 @@ Object.assign(window, {
   MetaField,
   CopyPath,
   CopyPermalink,
-  LinkChip
+  LinkChip,
+  KvMarkdown,
+  KvSourceSnippet,
+  KvMarker
 });

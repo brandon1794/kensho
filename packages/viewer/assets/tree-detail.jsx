@@ -48,6 +48,7 @@ function TreeNode({ node, depth, openIds, onToggle, selectedId, onSelect, leafLa
           {isLeaf && <span style={{ color:'var(--fg3)', marginRight:6, fontFamily:'var(--font-mono)', fontSize:11 }}>#{test.order}</span>}
           {leafLabel && isLeaf ? leafLabel(test) : (isLeaf ? test.name : node.name)}
           {isLeaf && test.retries > 0 && <span style={{ color: 'var(--status-broken)', marginLeft:6, fontSize:11, fontFamily:'var(--font-mono)' }}>↻{test.retries}</span>}
+          {isLeaf && (test.flaky || test.muted) && <span style={{ marginLeft:6 }}><KvMarker flaky={test.flaky} muted={test.muted} links={test.links} size="sm" /></span>}
         </span>
         {isLeaf ? (
           <span style={{ fontFamily:'var(--font-mono)', fontSize:11, color:'var(--fg3)', fontVariantNumeric:'tabular-nums' }}>{test.dur}</span>
@@ -107,7 +108,15 @@ function enrichSteps(steps, _test) {
 }
 
 function DetailPane({ test, defaultTab='steps' }) {
-  const [tab, setTab] = useStateT(defaultTab);
+  // Restore the active tab from the shareable hash (?tab=…) on first mount.
+  const _hashTab = (window.__kvCurrentHashExtra ? window.__kvCurrentHashExtra().tab : '') || '';
+  const [tab, setTabRaw] = useStateT(_hashTab || defaultTab);
+  // Wrap setTab so every tab change also updates the shareable URL (replace,
+  // not push, so it doesn't spam back/forward).
+  const setTab = React.useCallback((t) => {
+    setTabRaw(t);
+    if (window.__kvReplaceHashExtra) window.__kvReplaceHashExtra({ tab: t === 'steps' ? '' : t });
+  }, []);
   const [loaded, setLoaded] = useStateT(0);
   const scrollRef = React.useRef(null);
   // Embed-mode extras. Static-report path: __KenshoContext is undefined →
@@ -197,6 +206,8 @@ function DetailPane({ test, defaultTab='steps' }) {
     file: test.file,
     tags: test.tags || [],
     links: test.links || [],
+    flaky: test.flaky,
+    muted: test.muted,
   };
 
   // While case JSON hasn't been fetched yet, render the header (we have
@@ -500,10 +511,12 @@ function MetadataTab({ test }) {
 function OverviewTab({ test }) {
   return (
     <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:18 }}>
-      <section>
-        <div className="k-overline" style={{ marginBottom:6 }}>Description</div>
-        <p className="k-body" style={{ margin:0 }}>{test.description}</p>
-      </section>
+      {test.description ? (
+        <section>
+          <div className="k-overline" style={{ marginBottom:6 }}>Description</div>
+          <KvMarkdown source={test.description} />
+        </section>
+      ) : null}
       {test.bdd && (
         <section>
           <div className="k-overline" style={{ marginBottom:8 }}>Behavior · Given / When / Then</div>
@@ -540,6 +553,12 @@ function OverviewTab({ test }) {
             </div>
             {test.error.stack && <pre style={{ margin:0, fontFamily:'var(--font-mono)', fontSize:11.5, color:'var(--status-failed-fg)', whiteSpace:'pre-wrap' }}>{test.error.stack}</pre>}
           </div>
+          {test.sourceSnippet && (
+            <div style={{ marginTop:12 }}>
+              <div className="k-overline" style={{ marginBottom:8 }}>Source</div>
+              <KvSourceSnippet snippet={test.sourceSnippet} />
+            </div>
+          )}
         </section>
       )}
       <section>
@@ -653,12 +672,25 @@ function AttachmentsTab({ test }) {
     return parts[parts.length - 1] || p;
   };
 
-  const items = (test.attachments || []).map(a => ({
-    name: basename(a.relativePath) || a.id,
-    size: prettyBytes(a.sizeBytes),
-    icon: ICON_MAP[a.kind] || 'file',
-    preview: a.kind === 'screenshot' || a.kind === 'video' || a.kind === 'image',
-  }));
+  // Attachments are served under data/ in the static report (attachmentBase).
+  const base = (window.__KENSHO_ASSETS_BASE ? '' : '') + 'data/';
+  const isTrace = (a) => {
+    const n = (a.relativePath || a.id || '').toLowerCase();
+    return a.kind === 'trace' || /trace\.zip$/.test(n);
+  };
+
+  const items = (test.attachments || []).map(a => {
+    const name = basename(a.relativePath) || a.id;
+    const url = a.relativePath ? base + String(a.relativePath).replace(/^\/+/, '') : null;
+    return {
+      name,
+      url,
+      size: prettyBytes(a.sizeBytes),
+      icon: isTrace(a) ? 'route' : (ICON_MAP[a.kind] || 'file'),
+      preview: a.kind === 'screenshot' || a.kind === 'video' || a.kind === 'image',
+      trace: isTrace(a),
+    };
+  });
 
   if (items.length === 0) {
     return <div style={{padding:30,textAlign:'center',color:'var(--fg3)',fontFamily:'var(--font-mono)',fontSize:12}}>No attachments captured for this test.</div>;
@@ -668,12 +700,37 @@ function AttachmentsTab({ test }) {
     <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
       {items.map(a => (
         <div key={a.name} style={{ border:'1px solid var(--line)', borderRadius:8, overflow:'hidden', background:'var(--bg-elev)' }}>
-          {a.preview && <div style={{ height: 110, background: 'repeating-linear-gradient(135deg, var(--bg-sunken) 0 12px, var(--bg-elev) 12px 24px)', borderBottom:'1px solid var(--line)' }}/>}
+          {a.preview && a.url && (
+            a.icon === 'video'
+              ? <video src={a.url} controls style={{ width:'100%', height:140, objectFit:'cover', borderBottom:'1px solid var(--line)', background:'#000', display:'block' }}/>
+              : <a href={a.url} target="_blank" rel="noopener noreferrer"><img src={a.url} alt={a.name} style={{ width:'100%', height:140, objectFit:'cover', borderBottom:'1px solid var(--line)', display:'block', cursor:'zoom-in' }} onError={e => { e.currentTarget.style.display='none'; }}/></a>
+          )}
+          {a.preview && !a.url && <div style={{ height: 110, background: 'repeating-linear-gradient(135deg, var(--bg-sunken) 0 12px, var(--bg-elev) 12px 24px)', borderBottom:'1px solid var(--line)' }}/>}
           <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 12px' }}>
             <i data-lucide={a.icon} style={{ width:14, height:14 }}></i>
-            <span style={{ flex:1, fontFamily:'var(--font-mono)', fontSize:12, color:'var(--fg1)' }}>{a.name}</span>
+            <span style={{ flex:1, fontFamily:'var(--font-mono)', fontSize:12, color:'var(--fg1)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.name}</span>
             <span style={{ fontFamily:'var(--font-mono)', fontSize:11, color:'var(--fg3)' }}>{a.size}</span>
           </div>
+          {/* Playwright trace — offer a download + a hint to open it in the
+              official online trace viewer. The viewer can't load a local zip
+              for the user (no upload here), so we link the tool + download. */}
+          {a.trace && (
+            <div className="kv-trace" style={{ borderTop:'1px solid var(--line)', padding:'10px 12px', display:'flex', flexDirection:'column', gap:8 }}>
+              <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+                {a.url && (
+                  <a className="btn btn-secondary" href={a.url} download style={{ height:28, fontSize:12, textDecoration:'none' }}>
+                    <Icon name="download" size={13} /> Open trace
+                  </a>
+                )}
+                <a className="btn btn-ghost" href="https://trace.playwright.dev" target="_blank" rel="noopener noreferrer" style={{ height:28, fontSize:12, textDecoration:'none' }}>
+                  <Icon name="external-link" size={13} /> trace.playwright.dev
+                </a>
+              </div>
+              <div style={{ fontFamily:'var(--font-mono)', fontSize:10.5, color:'var(--fg3)', lineHeight:1.5 }}>
+                Download the trace, then drop it into <span style={{ color:'var(--fg2)' }}>trace.playwright.dev</span> to inspect the timeline, DOM snapshots, and network.
+              </div>
+            </div>
+          )}
         </div>
       ))}
     </div>
@@ -707,8 +764,26 @@ function TreeDetailPage({ title, subtitle, tree, leafLabel, headerExtra, default
   // misleading "first thing alphabetically" view.
   const [openIds, setOpenIds] = useStateT(new Set(defaultOpenAll ? allIds : []));
   const [selectedId, setSelectedId] = useStateT(null);
-  const [filters, setFilters] = useStateT(new Set(['passed','failed','broken','skipped','unknown']));
-  const [query, setQuery] = useStateT('');
+  // Restore search query + status filter from the shareable hash on mount.
+  const _hashExtra = window.__kvCurrentHashExtra ? window.__kvCurrentHashExtra() : {};
+  const ALL_STATUSES = ['passed','failed','broken','skipped','unknown'];
+  const [filters, setFilters] = useStateT(() => {
+    const raw = (_hashExtra.status || '').split(',').map(s => s.trim()).filter(Boolean);
+    const valid = raw.filter(s => ALL_STATUSES.includes(s));
+    return new Set(valid.length ? valid : ALL_STATUSES);
+  });
+  const [query, setQuery] = useStateT(_hashExtra.q || '');
+
+  // Mirror query + status into the URL (replaceState) so the filtered view is
+  // shareable without polluting back/forward history.
+  React.useEffect(() => {
+    if (!window.__kvReplaceHashExtra) return;
+    const allOn = filters.size === ALL_STATUSES.length;
+    window.__kvReplaceHashExtra({
+      q: query || '',
+      status: allOn ? '' : ALL_STATUSES.filter(s => filters.has(s)).join(','),
+    });
+  }, [query, filters]);
 
   // ============== Splitter (resizable tree column) ==============
   // Width of the left tree column. Restored from localStorage on mount;

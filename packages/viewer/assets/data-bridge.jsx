@@ -33,6 +33,7 @@
       SUITE_TREE: state.suiteTree,
       BEHAVIOR_TREE: state.behaviorTree,
       CATEGORIES: state.categories,
+      CATEGORY_GROUPS: state.categoryGroups,
       TIMELINE_TESTS: state.timelineTests,
       TREND_RUNS: state.trendRuns,
       HISTOGRAM: state.histogram,

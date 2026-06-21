@@ -1,11 +1,12 @@
 {
   "name": "@kaizenreport/kensho-jest",
-  "version": "0.1.1",
+  "version": "0.3.0",
   "description": "Kensho reporter for Jest — writes kensho-results/ so the Kensho CLI can generate a rich HTML report.",
   "type": "module",
   "main": "index.js",
   "files": [
     "index.js",
+    "src",
     "README.md"
   ],
   "peerDependencies": {
@@ -20,7 +21,7 @@
     "@kaizenreport/kensho-schema": "workspace:*"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=18"
   },
   "license": "Apache-2.0",
   "publishConfig": {

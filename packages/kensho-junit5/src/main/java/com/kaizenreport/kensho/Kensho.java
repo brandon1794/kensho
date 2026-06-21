@@ -73,9 +73,167 @@ public final class Kensho {
     scratch.labels.put(key, value == null ? "" : value);
   }
 
+  // ----- behavior (epic / feature / story) ----- //
+
+  /**
+   * Set the case's epic. Populates {@code behavior.epic} and {@code labels.epic}. No-op outside an
+   * active test.
+   */
+  public static void epic(String value) {
+    CaseScratch scratch = KenshoContext.current();
+    if (scratch == null || value == null || value.isEmpty()) return;
+    behaviorPut(scratch, "epic", value);
+    scratch.labels.put("epic", value);
+  }
+
+  /**
+   * Set the case's feature. Populates {@code behavior.feature} and {@code labels.feature}. No-op
+   * outside an active test.
+   */
+  public static void feature(String value) {
+    CaseScratch scratch = KenshoContext.current();
+    if (scratch == null || value == null || value.isEmpty()) return;
+    behaviorPut(scratch, "feature", value);
+    scratch.labels.put("feature", value);
+  }
+
+  /**
+   * Set the case's story. Populates {@code behavior.scenario} and {@code labels.story}. No-op outside
+   * an active test.
+   */
+  public static void story(String value) {
+    CaseScratch scratch = KenshoContext.current();
+    if (scratch == null || value == null || value.isEmpty()) return;
+    behaviorPut(scratch, "scenario", value);
+    scratch.labels.put("story", value);
+  }
+
+  private static void behaviorPut(CaseScratch scratch, String key, String value) {
+    scratch.behavior.put(key, value);
+  }
+
+  // ----- severity / owner / description / tag / parameter ----- //
+
+  /**
+   * Set the case severity. Accepts {@code blocker | critical | normal | minor | trivial}; any other
+   * value (including null) is ignored. No-op outside an active test.
+   */
+  public static void severity(String value) {
+    CaseScratch scratch = KenshoContext.current();
+    if (scratch == null || value == null) return;
+    switch (value) {
+      case "blocker":
+      case "critical":
+      case "normal":
+      case "minor":
+      case "trivial":
+        scratch.severity = value;
+        break;
+      default:
+        // unknown severity — ignore
+        break;
+    }
+  }
+
+  /** Set the case owner. Populates {@code case.owner}. No-op outside an active test. */
+  public static void owner(String value) {
+    CaseScratch scratch = KenshoContext.current();
+    if (scratch == null || value == null || value.isEmpty()) return;
+    scratch.owner = value;
+  }
+
+  /** Set the case description. Populates {@code case.description}. No-op outside an active test. */
+  public static void description(String value) {
+    CaseScratch scratch = KenshoContext.current();
+    if (scratch == null || value == null || value.isEmpty()) return;
+    scratch.description = value;
+  }
+
+  /** Add a tag to the case ({@code case.tags[]}). No-op outside an active test. */
+  public static void tag(String value) {
+    CaseScratch scratch = KenshoContext.current();
+    if (scratch == null || value == null || value.isEmpty()) return;
+    if (!scratch.tags.contains(value)) scratch.tags.add(value);
+  }
+
+  /** Add a parameter to the case ({@code case.parameters[]}, no {@code kind}). No-op outside a test. */
+  public static void parameter(String name, String value) {
+    CaseScratch scratch = KenshoContext.current();
+    if (scratch == null || name == null || name.isEmpty()) return;
+    Map<String, String> p = new LinkedHashMap<>();
+    p.put("name", name);
+    p.put("value", value == null ? "" : value);
+    scratch.parameters.add(p);
+  }
+
+  // ----- markers (flaky / muted / known issue) ----- //
+
+  /** Mark the running case as flaky. Merged into the case as {@code flaky:true}. No-op outside a test. */
+  public static void flaky() {
+    CaseScratch scratch = KenshoContext.current();
+    if (scratch == null) return;
+    scratch.flaky = true;
+  }
+
+  /** Mark the running case as muted / known-failure. Merged as {@code muted:true}. No-op outside a test. */
+  public static void muted() {
+    CaseScratch scratch = KenshoContext.current();
+    if (scratch == null) return;
+    scratch.muted = true;
+  }
+
+  /**
+   * Mark the case muted and attach an {@code issue} link for the given Jira id or URL. The link label
+   * defaults to the id. No-op outside an active test.
+   */
+  public static void knownIssue(String idOrUrl) {
+    knownIssue(idOrUrl, null);
+  }
+
+  /**
+   * Mark the case muted and attach an {@code issue} link for the given Jira id or URL with an explicit
+   * label. No-op outside an active test.
+   */
+  public static void knownIssue(String idOrUrl, String label) {
+    CaseScratch scratch = KenshoContext.current();
+    if (scratch == null) return;
+    scratch.muted = true;
+    if (idOrUrl == null || idOrUrl.isEmpty()) return;
+    addLink(scratch, jiraUrl(idOrUrl), "issue", label == null || label.isEmpty() ? idOrUrl : label);
+  }
+
+  // ----- links ----- //
+
   /** Attach a hyperlink to the running case. */
   public static void link(String url) {
     link(url, null, null);
+  }
+
+  /** Attach a hyperlink with a label (kind {@code link}). No-op outside an active test. */
+  public static void link(String url, String label) {
+    link(url, "link", label);
+  }
+
+  /**
+   * Attach a Jira issue link. {@code idOrUrl} may be a bare issue key (e.g. {@code PROJ-1}) or a full
+   * URL; bare keys are expanded via {@code KENSHO_JIRA_BASE_URL}/{@code JIRA_BASE_URL} when set. Kind
+   * is {@code issue}; the label defaults to the id. No-op outside an active test.
+   */
+  public static void jiraLink(String idOrUrl) {
+    jiraLink(idOrUrl, null);
+  }
+
+  public static void jiraLink(String idOrUrl, String label) {
+    CaseScratch scratch = KenshoContext.current();
+    if (scratch == null || idOrUrl == null || idOrUrl.isEmpty()) return;
+    addLink(scratch, jiraUrl(idOrUrl), "issue", label == null || label.isEmpty() ? idOrUrl : label);
+  }
+
+  /** Attach a reference link (kind {@code reference}). No-op outside an active test. */
+  public static void referenceLink(String url, String label) {
+    CaseScratch scratch = KenshoContext.current();
+    if (scratch == null || url == null || url.isEmpty()) return;
+    addLink(scratch, url, "reference", label);
   }
 
   public static void link(String url, String kind, String label) {
@@ -127,6 +285,29 @@ public final class Kensho {
   public static String currentCaseId() {
     CaseScratch scratch = KenshoContext.current();
     return scratch == null ? null : scratch.caseId;
+  }
+
+  private static void addLink(CaseScratch scratch, String url, String kind, String label) {
+    if (url == null || url.isEmpty()) return;
+    Map<String, String> entry = new LinkedHashMap<>();
+    entry.put("url", url);
+    if (kind != null && !kind.isEmpty()) entry.put("kind", kind);
+    if (label != null && !label.isEmpty()) entry.put("label", label);
+    scratch.links.add(entry);
+  }
+
+  /**
+   * Expand a bare Jira issue key to a full URL using {@code KENSHO_JIRA_BASE_URL} (falling back to
+   * {@code JIRA_BASE_URL}) when set; values that already look like URLs are returned unchanged.
+   */
+  private static String jiraUrl(String idOrUrl) {
+    if (idOrUrl == null || idOrUrl.isEmpty()) return idOrUrl;
+    if (idOrUrl.startsWith("http://") || idOrUrl.startsWith("https://")) return idOrUrl;
+    String base = System.getenv("KENSHO_JIRA_BASE_URL");
+    if (base == null || base.isEmpty()) base = System.getenv("JIRA_BASE_URL");
+    if (base == null || base.isEmpty()) return idOrUrl;
+    String trimmed = base.endsWith("/") ? base.substring(0, base.length() - 1) : base;
+    return trimmed + "/browse/" + idOrUrl;
   }
 
   private static String shortId() {

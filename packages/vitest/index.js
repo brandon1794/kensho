@@ -9,6 +9,23 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, relative } from 'node:path';
 import { emptyRun, computeTotals, stableCaseId, validateRun, envInfo } from '@kaizenreport/kensho-schema';
+import { kensho, readAnnotations, mergeAnnotations, _setCurrentTestResolver } from './src/annotations.js';
+
+// Re-export the annotation + runtime-marker API so users can
+// `import { kensho } from '@kaizenreport/kensho-vitest'` inside their tests.
+export { kensho };
+
+// Wire the "current test" resolver from vitest/suite when available. This runs
+// in the test worker (where the package entry is imported by the test file).
+// Best-effort: if vitest/suite can't be loaded we leave the resolver unset and
+// the kensho.* calls become no-ops.
+try {
+  const mod = await import('vitest/suite');
+  if (mod && typeof mod.getCurrentTest === 'function') {
+    _setCurrentTestResolver(mod.getCurrentTest);
+    globalThis.__kensho_getCurrentTest__ = mod.getCurrentTest;
+  }
+} catch { /* not in a worker, or vitest not installed */ }
 
 function mapStatus(task) {
   // Legacy task.result.state: 'pass' | 'fail' | 'skip' | 'todo' | 'only' | 'run'
@@ -64,6 +81,9 @@ export default class KenshoVitestReporter {
     this.startedAt = new Date().toISOString();
     this.casesById = new Map();
     this._emitted = false;
+    // Tell the annotation API (running in worker processes) where to flush its
+    // sidecar files so this reporter can read them back on finalize.
+    process.env.KENSHO_OUTPUT = opts.output || 'kensho-results';
   }
 
   onInit(/* ctx */) {
@@ -133,7 +153,7 @@ export default class KenshoVitestReporter {
     const errors = (res.errors || []).map(e => ({
       message: String(e.message || e), stack: e.stack, type: e.name,
     }));
-    return {
+    const caseObj = {
       id, name, fullName, filePath,
       suite: suiteChain,
       tags,
@@ -149,6 +169,7 @@ export default class KenshoVitestReporter {
       attachments: [],
       logs: [],
     };
+    return mergeAnnotations(caseObj, readAnnotations(this.outputDir, fullName));
   }
 
   _toKenshoCase(task, suiteChain) {
@@ -164,7 +185,7 @@ export default class KenshoVitestReporter {
     const errors = (task.result?.errors || []).map(e => ({
       message: String(e.message || e), stack: e.stack, type: e.name,
     }));
-    return {
+    const caseObj = {
       id, name, fullName, filePath,
       suite: suiteChain,
       tags,
@@ -180,6 +201,7 @@ export default class KenshoVitestReporter {
       attachments: [],
       logs: [],
     };
+    return mergeAnnotations(caseObj, readAnnotations(this.outputDir, fullName));
   }
 
   _writeManifest() {

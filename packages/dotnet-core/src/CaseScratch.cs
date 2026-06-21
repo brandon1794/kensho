@@ -25,6 +25,21 @@ public sealed class CaseScratch
     public List<KenshoLog> Logs { get; } = new();
     public Dictionary<string, string> Labels { get; } = new();
     public List<KenshoLink> Links { get; } = new();
+    public List<string> Tags { get; } = new();
+    public List<KenshoParameter> Parameters { get; } = new();
+
+    // Annotation values set by the Kensho.* static helpers from inside the
+    // test body. The listeners merge these onto the case, taking precedence
+    // over framework-attribute-derived values.
+    public KenshoBehavior? Behavior { get; set; }
+    public string? Severity { get; set; }
+    public string? Owner { get; set; }
+    public string? Description { get; set; }
+
+    // Markers set by Kensho.Flaky() / Kensho.Muted() / Kensho.KnownIssue().
+    // The listeners copy these onto the case in their merge step.
+    public bool Flaky { get; set; }
+    public bool Muted { get; set; }
 
     // Optional callback the listener wires up so Kensho.Attach can hand
     // the file off for copying into the attachments tree without the

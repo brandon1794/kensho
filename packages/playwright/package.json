@@ -1,11 +1,16 @@
 {
   "name": "@kaizenreport/kensho-playwright",
-  "version": "0.1.1",
+  "version": "0.3.0",
   "description": "Kensho reporter for Playwright — writes kensho-results/ during tests so the Kensho CLI can generate a rich HTML report.",
   "type": "module",
   "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./annotations": "./annotations.js"
+  },
   "files": [
     "index.js",
+    "annotations.js",
     "README.md"
   ],
   "peerDependencies": {
@@ -33,6 +38,6 @@
     "url": "https://github.com/brandon1794/kensho/issues"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=18"
   }
 }

@@ -406,9 +406,31 @@ function TimelinePage() {
 // ============== CATEGORIES PAGE — error-type classification ==============
 function CategoriesPage() {
   const ERROR_TYPES = window.CATEGORIES || [];
+  const CATEGORY_GROUPS = window.CATEGORY_GROUPS || [];
   const RICH_TESTS = window.RICH_TESTS || {};
-  const [selectedKind, setKind] = useStateP(ERROR_TYPES[0]?.kind ?? null);
-  if (ERROR_TYPES.length === 0) {
+
+  // Two groupings: explicit case.category buckets (when the run carries them)
+  // and the error-type derivation. Default to category view when available
+  // since it's author-curated.
+  const hasCategories = CATEGORY_GROUPS.length > 0;
+  const [groupBy, setGroupBy] = useStateP(hasCategories ? 'category' : 'error');
+  const GROUPS = groupBy === 'category' && hasCategories ? CATEGORY_GROUPS : ERROR_TYPES;
+
+  // Restore the selected category from the shareable hash (?cat=…) on mount.
+  const _hashCat = (window.__kvCurrentHashExtra ? window.__kvCurrentHashExtra().cat : '') || '';
+  const _initialKind = _hashCat && GROUPS.some(g => g.kind === _hashCat) ? _hashCat : GROUPS[0]?.kind ?? null;
+  const [selectedKind, setKindRaw] = useStateP(_initialKind);
+  const setKind = React.useCallback(k => {
+    setKindRaw(k);
+    if (window.__kvReplaceHashExtra) window.__kvReplaceHashExtra({
+      cat: k || ''
+    });
+  }, []);
+  // When the grouping changes the previously selected kind may not exist.
+  React.useEffect(() => {
+    setKind(GROUPS[0]?.kind ?? null);
+  }, [groupBy]);
+  if (ERROR_TYPES.length === 0 && !hasCategories) {
     return /*#__PURE__*/React.createElement("div", {
       className: "card",
       style: {
@@ -420,14 +442,17 @@ function CategoriesPage() {
       }
     }, "No failures in this run. Nothing to categorize.");
   }
-  const sel = ERROR_TYPES.find(e => e.kind === selectedKind) || ERROR_TYPES[0];
-  const totalIssues = ERROR_TYPES.reduce((a, b) => a + b.count, 0);
+  const sel = GROUPS.find(e => e.kind === selectedKind) || GROUPS[0];
+  const totalIssues = GROUPS.reduce((a, b) => a + b.count, 0);
+  const subtitle = groupBy === 'category' ? `Grouped by category · ${GROUPS.length} categories · ${totalIssues} tests` : `Failures grouped by error type · ${GROUPS.length} types · ${totalIssues} tests`;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       alignItems: 'baseline',
       justifyContent: 'space-between',
-      marginBottom: 14
+      marginBottom: 14,
+      gap: 16,
+      flexWrap: 'wrap'
     }
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
     className: "k-h1",
@@ -436,7 +461,34 @@ function CategoriesPage() {
     }
   }, "Categories"), /*#__PURE__*/React.createElement("div", {
     className: "k-meta"
-  }, "Failures grouped by error type \xB7 ", ERROR_TYPES.length, " types \xB7 ", totalIssues, " tests")), /*#__PURE__*/React.createElement("div", {
+  }, subtitle)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 10,
+      alignItems: 'center',
+      flexWrap: 'wrap'
+    }
+  }, hasCategories && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'inline-flex',
+      border: '1px solid var(--line)',
+      borderRadius: 8,
+      overflow: 'hidden'
+    }
+  }, [['category', 'By category'], ['error', 'By error type']].map(([id, label]) => /*#__PURE__*/React.createElement("button", {
+    key: id,
+    onClick: () => setGroupBy(id),
+    style: {
+      padding: '5px 12px',
+      border: 'none',
+      cursor: 'pointer',
+      background: groupBy === id ? 'var(--brand-blue-500)' : 'var(--bg-elev)',
+      color: groupBy === id ? '#fff' : 'var(--fg2)',
+      fontFamily: 'var(--font-body)',
+      fontSize: 12,
+      fontWeight: 600
+    }
+  }, label))), groupBy === 'error' && /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 6
@@ -453,22 +505,22 @@ function CategoriesPage() {
     className: "badge b-skipped"
   }, /*#__PURE__*/React.createElement("span", {
     className: "dot"
-  }), ERROR_TYPES.filter(e => e.family === 'skipped').reduce((a, b) => a + b.count, 0), " environment"))), /*#__PURE__*/React.createElement("div", {
+  }), ERROR_TYPES.filter(e => e.family === 'skipped').reduce((a, b) => a + b.count, 0), " environment")))), /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       marginBottom: 16
     }
   }, /*#__PURE__*/React.createElement("div", {
     className: "hd"
-  }, /*#__PURE__*/React.createElement("h3", null, "Distribution by error type"), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("h3", null, "Distribution by ", groupBy === 'category' ? 'category' : 'error type'), /*#__PURE__*/React.createElement("div", {
     className: "meta"
-  }, totalIssues, " test failures")), /*#__PURE__*/React.createElement("div", {
+  }, totalIssues, " tests")), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       flexDirection: 'column',
       gap: 8
     }
-  }, ERROR_TYPES.map(e => /*#__PURE__*/React.createElement("div", {
+  }, GROUPS.map(e => /*#__PURE__*/React.createElement("div", {
     key: e.kind,
     style: {
       display: 'grid',
@@ -530,7 +582,7 @@ function CategoriesPage() {
     style: {
       borderRight: '1px solid var(--line)'
     }
-  }, ERROR_TYPES.map(e => /*#__PURE__*/React.createElement("div", {
+  }, GROUPS.map(e => /*#__PURE__*/React.createElement("div", {
     key: e.kind,
     onClick: () => setKind(e.kind),
     style: {
@@ -589,7 +641,7 @@ function CategoriesPage() {
     style: {
       marginBottom: 6
     }
-  }, sel.family, " \xB7 error type"), /*#__PURE__*/React.createElement("h2", {
+  }, sel.family, " \xB7 ", groupBy === 'category' ? 'category' : 'error type'), /*#__PURE__*/React.createElement("h2", {
     className: "k-h2",
     style: {
       fontSize: 22,
@@ -707,22 +759,29 @@ function FlakyPage() {
   const allTests = Object.values(RICH_TESTS);
   const fmt = window._kenshoFmtDuration || (ms => ms + 'ms');
 
-  // Bucket every test into one of three flake categories (or none).
+  // Bucket every test into one of the flake categories (or none). A test
+  // explicitly flagged flaky by the reporter (case.flaky → kensho.flaky())
+  // always surfaces here even on a clean single run; it's the highest-signal
+  // bucket since the author themselves marked it non-deterministic.
   const buckets = {
+    flagged: [],
     recovered: [],
     broken: [],
     failedWithRetries: []
   };
   for (const t of allTests) {
-    if (t.retries > 0 && t.status === 'passed') buckets.recovered.push(t);else if (t.status === 'broken') buckets.broken.push(t);else if (t.retries > 0 && (t.status === 'failed' || t.status === 'broken')) buckets.failedWithRetries.push(t);
+    if (t.flaky) buckets.flagged.push(t);else if (t.retries > 0 && t.status === 'passed') buckets.recovered.push(t);else if (t.status === 'broken') buckets.broken.push(t);else if (t.retries > 0 && (t.status === 'failed' || t.status === 'broken')) buckets.failedWithRetries.push(t);
   }
-  const flakeTotal = buckets.recovered.length + buckets.broken.length + buckets.failedWithRetries.length;
+  const flakeTotal = buckets.flagged.length + buckets.recovered.length + buckets.broken.length + buckets.failedWithRetries.length;
   const [filter, setFilter] = useStateP('all');
 
   // Stable order for rendering — recoveries first (highest signal-to-noise),
   // then broken, then failed-with-retries. Within each bucket, sort by retry
   // count desc so the highest-friction tests bubble up.
-  const ALL_FLAKY = [...buckets.recovered.map(t => ({
+  const ALL_FLAKY = [...buckets.flagged.map(t => ({
+    ...t,
+    _bucket: 'flagged'
+  })), ...buckets.recovered.map(t => ({
     ...t,
     _bucket: 'recovered'
   })), ...buckets.broken.map(t => ({
@@ -818,7 +877,7 @@ function FlakyPage() {
       }
     }, "Every test ran cleanly on the first attempt \u2014 no retries, no broken executions. Flaky-test detection here is single-run; rolling flake-rate analysis (last N runs) lives in the Kaizen platform.")));
   }
-  const FILTERS = [['all', 'All flaky', flakeTotal], ['recovered', 'Recovered', buckets.recovered.length], ['broken', 'Broken', buckets.broken.length], ['failedWithRetries', 'Failed retry', buckets.failedWithRetries.length]].filter(([id, _, n]) => id === 'all' || n > 0);
+  const FILTERS = [['all', 'All flaky', flakeTotal], ['flagged', 'Flagged', buckets.flagged.length], ['recovered', 'Recovered', buckets.recovered.length], ['broken', 'Broken', buckets.broken.length], ['failedWithRetries', 'Failed retry', buckets.failedWithRetries.length]].filter(([id, _, n]) => id === 'all' || n > 0);
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
@@ -1050,6 +1109,13 @@ function FlakyTestRow({
   selected
 }) {
   const BUCKET_META = {
+    flagged: {
+      color: 'var(--brand-blue-500)',
+      label: 'FLAGGED FLAKY',
+      pillBg: 'var(--accent-soft)',
+      pillFg: 'var(--brand-blue-500)',
+      icon: 'activity'
+    },
     recovered: {
       color: 'var(--status-broken)',
       label: 'RECOVERED',

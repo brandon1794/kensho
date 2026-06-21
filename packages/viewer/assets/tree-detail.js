@@ -89,7 +89,16 @@ function TreeNode({
       fontSize: 11,
       fontFamily: 'var(--font-mono)'
     }
-  }, "\u21BB", test.retries)), isLeaf ? /*#__PURE__*/React.createElement("span", {
+  }, "\u21BB", test.retries), isLeaf && (test.flaky || test.muted) && /*#__PURE__*/React.createElement("span", {
+    style: {
+      marginLeft: 6
+    }
+  }, /*#__PURE__*/React.createElement(KvMarker, {
+    flaky: test.flaky,
+    muted: test.muted,
+    links: test.links,
+    size: "sm"
+  }))), isLeaf ? /*#__PURE__*/React.createElement("span", {
     style: {
       fontFamily: 'var(--font-mono)',
       fontSize: 11,
@@ -223,7 +232,17 @@ function DetailPane({
   test,
   defaultTab = 'steps'
 }) {
-  const [tab, setTab] = useStateT(defaultTab);
+  // Restore the active tab from the shareable hash (?tab=…) on first mount.
+  const _hashTab = (window.__kvCurrentHashExtra ? window.__kvCurrentHashExtra().tab : '') || '';
+  const [tab, setTabRaw] = useStateT(_hashTab || defaultTab);
+  // Wrap setTab so every tab change also updates the shareable URL (replace,
+  // not push, so it doesn't spam back/forward).
+  const setTab = React.useCallback(t => {
+    setTabRaw(t);
+    if (window.__kvReplaceHashExtra) window.__kvReplaceHashExtra({
+      tab: t === 'steps' ? '' : t
+    });
+  }, []);
   const [loaded, setLoaded] = useStateT(0);
   const scrollRef = React.useRef(null);
   // Embed-mode extras. Static-report path: __KenshoContext is undefined →
@@ -391,7 +410,9 @@ function DetailPane({
     // only show when supplied
     file: test.file,
     tags: test.tags || [],
-    links: test.links || []
+    links: test.links || [],
+    flaky: test.flaky,
+    muted: test.muted
   };
 
   // While case JSON hasn't been fetched yet, render the header (we have
@@ -902,17 +923,14 @@ function OverviewTab({
       gridTemplateColumns: '1fr',
       gap: 18
     }
-  }, /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement("div", {
+  }, test.description ? /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement("div", {
     className: "k-overline",
     style: {
       marginBottom: 6
     }
-  }, "Description"), /*#__PURE__*/React.createElement("p", {
-    className: "k-body",
-    style: {
-      margin: 0
-    }
-  }, test.description)), test.bdd && /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement("div", {
+  }, "Description"), /*#__PURE__*/React.createElement(KvMarkdown, {
+    source: test.description
+  })) : null, test.bdd && /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement("div", {
     className: "k-overline",
     style: {
       marginBottom: 8
@@ -1025,7 +1043,18 @@ function OverviewTab({
       color: 'var(--status-failed-fg)',
       whiteSpace: 'pre-wrap'
     }
-  }, test.error.stack))), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement("div", {
+  }, test.error.stack)), test.sourceSnippet && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "k-overline",
+    style: {
+      marginBottom: 8
+    }
+  }, "Source"), /*#__PURE__*/React.createElement(KvSourceSnippet, {
+    snippet: test.sourceSnippet
+  }))), /*#__PURE__*/React.createElement("section", null, /*#__PURE__*/React.createElement("div", {
     className: "k-overline",
     style: {
       marginBottom: 8
@@ -1241,12 +1270,25 @@ function AttachmentsTab({
     const parts = String(p).split(/[\\/]/);
     return parts[parts.length - 1] || p;
   };
-  const items = (test.attachments || []).map(a => ({
-    name: basename(a.relativePath) || a.id,
-    size: prettyBytes(a.sizeBytes),
-    icon: ICON_MAP[a.kind] || 'file',
-    preview: a.kind === 'screenshot' || a.kind === 'video' || a.kind === 'image'
-  }));
+
+  // Attachments are served under data/ in the static report (attachmentBase).
+  const base = (window.__KENSHO_ASSETS_BASE ? '' : '') + 'data/';
+  const isTrace = a => {
+    const n = (a.relativePath || a.id || '').toLowerCase();
+    return a.kind === 'trace' || /trace\.zip$/.test(n);
+  };
+  const items = (test.attachments || []).map(a => {
+    const name = basename(a.relativePath) || a.id;
+    const url = a.relativePath ? base + String(a.relativePath).replace(/^\/+/, '') : null;
+    return {
+      name,
+      url,
+      size: prettyBytes(a.sizeBytes),
+      icon: isTrace(a) ? 'route' : ICON_MAP[a.kind] || 'file',
+      preview: a.kind === 'screenshot' || a.kind === 'video' || a.kind === 'image',
+      trace: isTrace(a)
+    };
+  });
   if (items.length === 0) {
     return /*#__PURE__*/React.createElement("div", {
       style: {
@@ -1272,7 +1314,36 @@ function AttachmentsTab({
       overflow: 'hidden',
       background: 'var(--bg-elev)'
     }
-  }, a.preview && /*#__PURE__*/React.createElement("div", {
+  }, a.preview && a.url && (a.icon === 'video' ? /*#__PURE__*/React.createElement("video", {
+    src: a.url,
+    controls: true,
+    style: {
+      width: '100%',
+      height: 140,
+      objectFit: 'cover',
+      borderBottom: '1px solid var(--line)',
+      background: '#000',
+      display: 'block'
+    }
+  }) : /*#__PURE__*/React.createElement("a", {
+    href: a.url,
+    target: "_blank",
+    rel: "noopener noreferrer"
+  }, /*#__PURE__*/React.createElement("img", {
+    src: a.url,
+    alt: a.name,
+    style: {
+      width: '100%',
+      height: 140,
+      objectFit: 'cover',
+      borderBottom: '1px solid var(--line)',
+      display: 'block',
+      cursor: 'zoom-in'
+    },
+    onError: e => {
+      e.currentTarget.style.display = 'none';
+    }
+  }))), a.preview && !a.url && /*#__PURE__*/React.createElement("div", {
     style: {
       height: 110,
       background: 'repeating-linear-gradient(135deg, var(--bg-sunken) 0 12px, var(--bg-elev) 12px 24px)',
@@ -1296,7 +1367,10 @@ function AttachmentsTab({
       flex: 1,
       fontFamily: 'var(--font-mono)',
       fontSize: 12,
-      color: 'var(--fg1)'
+      color: 'var(--fg1)',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap'
     }
   }, a.name), /*#__PURE__*/React.createElement("span", {
     style: {
@@ -1304,7 +1378,58 @@ function AttachmentsTab({
       fontSize: 11,
       color: 'var(--fg3)'
     }
-  }, a.size)))));
+  }, a.size)), a.trace && /*#__PURE__*/React.createElement("div", {
+    className: "kv-trace",
+    style: {
+      borderTop: '1px solid var(--line)',
+      padding: '10px 12px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      flexWrap: 'wrap'
+    }
+  }, a.url && /*#__PURE__*/React.createElement("a", {
+    className: "btn btn-secondary",
+    href: a.url,
+    download: true,
+    style: {
+      height: 28,
+      fontSize: 12,
+      textDecoration: 'none'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "download",
+    size: 13
+  }), " Open trace"), /*#__PURE__*/React.createElement("a", {
+    className: "btn btn-ghost",
+    href: "https://trace.playwright.dev",
+    target: "_blank",
+    rel: "noopener noreferrer",
+    style: {
+      height: 28,
+      fontSize: 12,
+      textDecoration: 'none'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "external-link",
+    size: 13
+  }), " trace.playwright.dev")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: 'var(--font-mono)',
+      fontSize: 10.5,
+      color: 'var(--fg3)',
+      lineHeight: 1.5
+    }
+  }, "Download the trace, then drop it into ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--fg2)'
+    }
+  }, "trace.playwright.dev"), " to inspect the timeline, DOM snapshots, and network.")))));
 }
 
 // ============== Splitter constants ==============
@@ -1340,8 +1465,26 @@ function TreeDetailPage({
   // misleading "first thing alphabetically" view.
   const [openIds, setOpenIds] = useStateT(new Set(defaultOpenAll ? allIds : []));
   const [selectedId, setSelectedId] = useStateT(null);
-  const [filters, setFilters] = useStateT(new Set(['passed', 'failed', 'broken', 'skipped', 'unknown']));
-  const [query, setQuery] = useStateT('');
+  // Restore search query + status filter from the shareable hash on mount.
+  const _hashExtra = window.__kvCurrentHashExtra ? window.__kvCurrentHashExtra() : {};
+  const ALL_STATUSES = ['passed', 'failed', 'broken', 'skipped', 'unknown'];
+  const [filters, setFilters] = useStateT(() => {
+    const raw = (_hashExtra.status || '').split(',').map(s => s.trim()).filter(Boolean);
+    const valid = raw.filter(s => ALL_STATUSES.includes(s));
+    return new Set(valid.length ? valid : ALL_STATUSES);
+  });
+  const [query, setQuery] = useStateT(_hashExtra.q || '');
+
+  // Mirror query + status into the URL (replaceState) so the filtered view is
+  // shareable without polluting back/forward history.
+  React.useEffect(() => {
+    if (!window.__kvReplaceHashExtra) return;
+    const allOn = filters.size === ALL_STATUSES.length;
+    window.__kvReplaceHashExtra({
+      q: query || '',
+      status: allOn ? '' : ALL_STATUSES.filter(s => filters.has(s)).join(',')
+    });
+  }, [query, filters]);
 
   // ============== Splitter (resizable tree column) ==============
   // Width of the left tree column. Restored from localStorage on mount;

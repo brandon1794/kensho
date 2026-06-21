@@ -476,6 +476,16 @@ class Listener:
             case.setdefault("links", []).extend(scratch.links)
         if scratch.logs:
             case.setdefault("logs", []).extend(scratch.logs)
+        if scratch.parameters:
+            case.setdefault("parameters", []).extend(scratch.parameters)
+
+        # Runtime facade overrides (epic/feature/story/severity/owner/...) win
+        # over tag-derived values; flaky/muted markers OR in.
+        _apply_runtime(case, scratch)
+        if scratch.flaky:
+            case["flaky"] = True
+        if scratch.muted:
+            case["muted"] = True
 
         # Drop empty optional fields that Robot exposes as empty strings.
         for k in ("filePath",):
@@ -543,6 +553,48 @@ class Listener:
 # --------------------------------------------------------------------------- #
 # Module-level helpers
 # --------------------------------------------------------------------------- #
+
+
+def _apply_runtime(case: Dict[str, Any], scratch: CaseScratch) -> None:
+    """Fold the ``kensho`` facade's runtime overrides into the case.
+
+    Runtime values win over anything derived from Robot tags / docs. The
+    behavior fields (epic/feature/story) are also mirrored to ``case.labels``.
+    """
+    rt = getattr(scratch, "runtime", None) or {}
+    if not rt:
+        return
+
+    behavior = dict(case.get("behavior") or {})
+    labels = dict(case.get("labels") or {})
+    if rt.get("epic"):
+        behavior["epic"] = rt["epic"]
+        labels["epic"] = rt["epic"]
+    if rt.get("feature"):
+        behavior["feature"] = rt["feature"]
+        labels["feature"] = rt["feature"]
+    if rt.get("story"):
+        behavior["scenario"] = rt["story"]
+        labels["story"] = rt["story"]
+    if behavior:
+        case["behavior"] = behavior
+    if labels:
+        case["labels"] = labels
+
+    if rt.get("severity"):
+        case["severity"] = rt["severity"]
+    if rt.get("owner"):
+        case["owner"] = rt["owner"]
+    if rt.get("description"):
+        case["description"] = rt["description"]
+
+    rt_tags = rt.get("tags") or []
+    if rt_tags:
+        existing = list(case.get("tags") or [])
+        for t in rt_tags:
+            if t not in existing:
+                existing.append(t)
+        case["tags"] = existing
 
 
 def _coerce_bool(v: Any) -> bool:

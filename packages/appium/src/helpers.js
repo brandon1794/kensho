@@ -20,16 +20,32 @@ const state = {
   attachmentsRoot: null,            // set by the reporter
 };
 
+const SEVERITIES = ['blocker', 'critical', 'normal', 'minor', 'trivial'];
+
+function freshBuf(id) {
+  return {
+    id,
+    steps: [], attachments: [], labels: {}, links: [], stack: [],
+    behavior: {}, parameters: [], tags: [],
+    severity: undefined, owner: undefined, description: undefined,
+    flaky: false, muted: false,
+  };
+}
+
 export function _bind({ attachmentsRoot, currentId }) {
   state.attachmentsRoot = attachmentsRoot;
   if (currentId) {
     if (!state.byId.has(currentId)) {
-      state.byId.set(currentId, { id: currentId, steps: [], attachments: [], labels: {}, links: [], stack: [] });
+      state.byId.set(currentId, freshBuf(currentId));
     }
     state.current = state.byId.get(currentId);
   } else {
     state.current = null;
   }
+}
+
+function cleanTag(v) {
+  return String(v == null ? '' : v).replace(/^@+/, '').trim();
 }
 
 export function _drain(id) {
@@ -120,6 +136,104 @@ export const kensho = {
   /** Add a link, e.g. `kensho.link('https://...','jira','MOB-12')`. */
   link(url, kind, label) {
     if (!state.current || !url) return;
-    state.current.links.push({ url: String(url), kind, label });
+    state.current.links.push({ url: String(url), kind: kind || 'link', label });
+  },
+
+  // ---- structured metadata (BDD) ----
+  Epic(v)    { setBehavior('epic', v); },
+  Feature(v) { setBehavior('feature', v); },
+  Story(v)   { setBehavior('scenario', v); },
+
+  Severity(v) {
+    if (!state.current) return;
+    const s = String(v == null ? '' : v).toLowerCase();
+    if (SEVERITIES.includes(s)) state.current.severity = s; // ignore unknown
+  },
+  Owner(v)       { if (state.current && v != null) state.current.owner = String(v); },
+  Description(v) { if (state.current && v != null) state.current.description = String(v); },
+
+  Tag(v) {
+    if (!state.current) return;
+    const t = cleanTag(v);
+    if (t && !state.current.tags.includes(t)) state.current.tags.push(t);
+  },
+  Label(key, value) { this.label(key, value); },
+
+  Link(url, name)     { this.link(url, 'link', name); },
+  JiraLink(idOrUrl, name) {
+    if (!state.current || !idOrUrl) return;
+    const id = String(idOrUrl);
+    this.link(id, 'issue', name != null ? String(name) : id);
+  },
+  ReferenceLink(url, name) { this.link(url, 'reference', name); },
+
+  Parameter(name, value) {
+    if (!state.current || name == null) return;
+    state.current.parameters.push({ name: String(name), value: String(value == null ? '' : value) });
+  },
+
+  // ---- runtime markers ----
+  Flaky() { if (state.current) state.current.flaky = true; },
+  Muted() { if (state.current) state.current.muted = true; },
+  KnownIssue(idOrUrl, label) {
+    if (!state.current) return;
+    state.current.muted = true;
+    if (idOrUrl != null) {
+      const id = String(idOrUrl);
+      this.link(id, 'issue', label != null ? String(label) : id);
+    }
   },
 };
+
+// lowercase aliases
+kensho.epic = kensho.Epic;
+kensho.feature = kensho.Feature;
+kensho.story = kensho.Story;
+kensho.severity = kensho.Severity;
+kensho.owner = kensho.Owner;
+kensho.description = kensho.Description;
+kensho.tag = kensho.Tag;
+kensho.jiraLink = kensho.JiraLink;
+kensho.referenceLink = kensho.ReferenceLink;
+kensho.parameter = kensho.Parameter;
+kensho.flaky = kensho.Flaky;
+kensho.muted = kensho.Muted;
+kensho.knownIssue = kensho.KnownIssue;
+
+function setBehavior(key, value) {
+  if (!state.current || value == null) return;
+  state.current.behavior[key] = String(value);
+  const labelKey = key === 'scenario' ? 'story' : key;
+  state.current.labels[labelKey] = String(value);
+}
+
+/**
+ * Fold a drained helper buffer into a Kensho case the reporter/session built.
+ * Runtime/helper values win over derived ones. Mutates and returns caseObj.
+ *
+ *   import { mergeAppiumMeta } from '.../helpers.js';
+ *   mergeAppiumMeta(caseObj, buf);
+ */
+export function mergeAppiumMeta(caseObj, buf) {
+  if (!caseObj || !buf) return caseObj;
+
+  if (buf.behavior && Object.keys(buf.behavior).length) {
+    caseObj.behavior = { ...(caseObj.behavior || {}), ...buf.behavior };
+  }
+  if (buf.severity) caseObj.severity = buf.severity;     // runtime wins
+  if (buf.owner) caseObj.owner = buf.owner;
+  if (buf.description) caseObj.description = buf.description;
+
+  if (buf.tags && buf.tags.length) {
+    const set = new Set(caseObj.tags || []);
+    for (const t of buf.tags) set.add(t);
+    caseObj.tags = [...set];
+  }
+  if (buf.parameters && buf.parameters.length) {
+    caseObj.parameters = [...(caseObj.parameters || []), ...buf.parameters];
+  }
+  if (buf.flaky) caseObj.flaky = true;
+  if (buf.muted) caseObj.muted = true;
+
+  return caseObj;
+}

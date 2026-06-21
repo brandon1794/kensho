@@ -13,6 +13,10 @@ import { diffRuns } from '../src/diff.js';
 import { loginCli } from '../src/login.js';
 import { pushCli } from '../src/push.js';
 import { watchCli } from '../src/watch.js';
+import { mergeResults } from '../src/merge.js';
+import { importAllure } from '../src/import-allure.js';
+import { summaryCli } from '../src/summary.js';
+import { exportJunit } from '../src/export-junit.js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve, dirname } from 'node:path';
@@ -50,11 +54,15 @@ function usage() {
 
 Usage:
   kensho generate [--input <dir>] [--output <dir>] [--history <dir>] [--no-compress]
-                  [--codeowners <path>] [--no-codeowners]
+                  [--codeowners <path>] [--no-codeowners] [--no-snippets]
   kensho open     [--report <dir>]  [--port <n>]
   kensho validate [<dir>]
   kensho badge    [--input <dir>] [--type passrate|status|tests] [--out <file>]
   kensho diff     <prev-results-dir> <new-results-dir> [--out <dir>] [--no-terminal]
+  kensho merge    <dir...> --out <dir>
+  kensho import-allure <allure-results-dir> --out <dir>
+  kensho summary  <results-or-report-dir> [--format md|gh] [--out <file>]
+  kensho export-junit <results-dir> --out <file.xml>
   kensho login    [--server <url>]
   kensho push     [--input <dir>] [--workspace <slug>] [--project <slug>]
                   [--token <token>] [--server <url>] [--label k=v]...
@@ -72,6 +80,8 @@ Options:
   --no-compress   Skip JSON minification + .gz companions (slower load, easier to debug)
   --codeowners    Path to a CODEOWNERS file (default: <repo-root>/.github/CODEOWNERS)
   --no-codeowners Skip CODEOWNERS owner inference
+  --no-snippets   Skip source-snippet capture for failing cases (generate)
+  --format        For 'summary': md (default) | gh ($GITHUB_STEP_SUMMARY)
   --report        Directory to serve (default: ./kensho-report)
   --port          Port for 'open' (default: auto-select)
   --type          Badge type: passrate (default) | status | tests
@@ -86,6 +96,10 @@ Examples:
   npx kensho badge --type passrate --out badge.svg
   npx kensho diff ./prev-results ./kensho-results
   npx kensho diff ./prev-results ./kensho-results --out ./kensho-diff
+  npx kensho merge ./results-chromium ./results-firefox --out ./kensho-results
+  npx kensho import-allure ./allure-results --out ./kensho-results
+  npx kensho summary ./kensho-results --format gh
+  npx kensho export-junit ./kensho-results --out ./junit.xml
   npx kensho login
   npx kensho push --workspace acme-web
   npx kensho push --strict   # CI gate
@@ -138,7 +152,8 @@ const { flags, positional } = parseFlags(rest, ['label']);
         const codeownersPath = flags.codeowners && flags.codeowners !== true
           ? resolve(process.cwd(), flags.codeowners) : null;
         const codeownersDisabled = !!flags['no-codeowners'];
-        await generate({ input, output, history, config, compress, codeownersPath, codeownersDisabled });
+        const snippets = !flags['no-snippets'];
+        await generate({ input, output, history, config, compress, codeownersPath, codeownersDisabled, snippets });
         break;
       }
       case 'open': {
@@ -165,6 +180,67 @@ const { flags, positional } = parseFlags(rest, ['label']);
         const terminal = !flags['no-terminal'];
         await diffRuns({ prev, cur, out, terminal });
         break;
+      }
+      case 'merge': {
+        if (!positional.length) {
+          console.error('[kensho] merge needs one or more input directories');
+          process.exit(2);
+        }
+        if (!flags.out || flags.out === true) {
+          console.error('[kensho] merge requires --out <dir>');
+          process.exit(2);
+        }
+        const inputs = positional.map(p => resolve(process.cwd(), p));
+        const out = resolve(process.cwd(), flags.out);
+        const code = await mergeResults({ inputs, out });
+        process.exit(code);
+      }
+      case 'import-allure': {
+        if (!positional[0]) {
+          console.error('[kensho] import-allure needs an <allure-results-dir>');
+          process.exit(2);
+        }
+        if (!flags.out || flags.out === true) {
+          console.error('[kensho] import-allure requires --out <dir>');
+          process.exit(2);
+        }
+        const code = await importAllure({
+          input: resolve(process.cwd(), positional[0]),
+          out: resolve(process.cwd(), flags.out),
+        });
+        process.exit(code);
+      }
+      case 'summary': {
+        if (!positional[0]) {
+          console.error('[kensho] summary needs a <results-or-report-dir>');
+          process.exit(2);
+        }
+        const format = flags.format && flags.format !== true ? String(flags.format) : 'md';
+        if (!['md', 'gh'].includes(format)) {
+          console.error('[kensho] --format must be "md" or "gh"');
+          process.exit(2);
+        }
+        const code = await summaryCli({
+          input: resolve(process.cwd(), positional[0]),
+          format,
+          out: flags.out && flags.out !== true ? resolve(process.cwd(), flags.out) : null,
+        });
+        process.exit(code);
+      }
+      case 'export-junit': {
+        if (!positional[0]) {
+          console.error('[kensho] export-junit needs a <results-dir>');
+          process.exit(2);
+        }
+        if (!flags.out || flags.out === true) {
+          console.error('[kensho] export-junit requires --out <file.xml>');
+          process.exit(2);
+        }
+        const code = await exportJunit({
+          input: resolve(process.cwd(), positional[0]),
+          out: resolve(process.cwd(), flags.out),
+        });
+        process.exit(code);
       }
       case 'login': {
         if (flags.help || flags.h) { usage(); break; }

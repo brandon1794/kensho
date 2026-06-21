@@ -455,6 +455,15 @@ class KenshoPlugin:
                 case.setdefault("labels", {}).update(scratch.labels)
             if scratch.links:
                 case.setdefault("links", []).extend(scratch.links)
+            if scratch.parameters:
+                case.setdefault("parameters", []).extend(scratch.parameters)
+            _apply_runtime(case, scratch)
+            # Markers — runtime wins, but flaky/muted are booleans set by both
+            # the kensho.flaky()/muted()/known_issue() markers; OR them in.
+            if scratch.flaky:
+                case["flaky"] = True
+            if scratch.muted:
+                case["muted"] = True
 
         # Drop empty optional fields the schema treats as additionalProperties=false-safe
         # but that just clutter the JSON.
@@ -632,6 +641,52 @@ def _collect_marker_data(item: pytest.Item) -> Dict[str, Any]:
             out["parameters"][k] = v
 
     return out
+
+
+def _apply_runtime(case: Dict[str, Any], scratch: CaseScratch) -> None:
+    """Fold the ``kensho`` facade's runtime overrides into the case.
+
+    Runtime values win over anything derived from pytest markers. The
+    behavior fields (epic/feature/story) are also mirrored to
+    ``case.labels`` so they show up as labels too, matching the JS adapters.
+    """
+    rt = getattr(scratch, "runtime", None) or {}
+    if not rt and not scratch.flaky and not scratch.muted:
+        return
+
+    # Behavior + label mirroring.
+    behavior = dict(case.get("behavior") or {})
+    labels = dict(case.get("labels") or {})
+    if rt.get("epic"):
+        behavior["epic"] = rt["epic"]
+        labels["epic"] = rt["epic"]
+    if rt.get("feature"):
+        behavior["feature"] = rt["feature"]
+        labels["feature"] = rt["feature"]
+    if rt.get("story"):
+        behavior["scenario"] = rt["story"]
+        labels["story"] = rt["story"]
+    if behavior:
+        case["behavior"] = behavior
+    if labels:
+        case["labels"] = labels
+
+    # Typed scalars — runtime wins.
+    if rt.get("severity"):
+        case["severity"] = rt["severity"]
+    if rt.get("owner"):
+        case["owner"] = rt["owner"]
+    if rt.get("description"):
+        case["description"] = rt["description"]
+
+    # Runtime tags — append + de-dupe against existing.
+    rt_tags = rt.get("tags") or []
+    if rt_tags:
+        existing = list(case.get("tags") or [])
+        for t in rt_tags:
+            if t not in existing:
+                existing.append(t)
+        case["tags"] = existing
 
 
 def _normalize_link(args: tuple, kwargs: dict) -> Optional[Dict[str, str]]:

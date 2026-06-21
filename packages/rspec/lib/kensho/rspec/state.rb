@@ -15,7 +15,9 @@ module Kensho
   module RSpec
     class CaseScratch
       attr_accessor :case_id, :example_id, :started_at_ms,
-                    :steps, :step_stack, :attachments, :logs, :labels, :links
+                    :steps, :step_stack, :attachments, :logs, :labels, :links,
+                    :parameters, :tags, :behavior, :severity, :owner,
+                    :description, :flaky, :muted
 
       def initialize(case_id:, example_id:, started_at_ms:)
         @case_id = case_id
@@ -27,6 +29,14 @@ module Kensho
         @logs = []
         @labels = {}
         @links = []
+        @parameters = []
+        @tags = []
+        @behavior = {}
+        @severity = nil
+        @owner = nil
+        @description = nil
+        @flaky = false
+        @muted = false
       end
     end
 

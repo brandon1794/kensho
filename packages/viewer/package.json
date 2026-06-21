@@ -1,6 +1,6 @@
 {
   "name": "@kaizenreport/kensho-viewer",
-  "version": "0.1.1",
+  "version": "0.3.0",
   "description": "Static HTML/JS/CSS viewer bundled by the Kensho CLI into each generated report. Also exports an embeddable React component for the Kaizen platform.",
   "type": "module",
   "main": "index.html",
@@ -61,6 +61,6 @@
     "url": "https://github.com/brandon1794/kensho/issues"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=18"
   }
 }

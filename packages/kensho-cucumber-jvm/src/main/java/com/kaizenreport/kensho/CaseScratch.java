@@ -30,6 +30,30 @@ public final class CaseScratch {
   public final List<Map<String, String>> links = new ArrayList<>();
   public final List<Map<String, Object>> logs = new ArrayList<>();
 
+  /** Behavior fields set via {@link Kensho#epic}/{@link Kensho#feature}/{@link Kensho#story}. */
+  public final Map<String, Object> behavior = new LinkedHashMap<>();
+
+  /** Tags added via {@link Kensho#tag}. */
+  public final List<String> tags = new ArrayList<>();
+
+  /** Parameters added via {@link Kensho#parameter}. */
+  public final List<Map<String, String>> parameters = new ArrayList<>();
+
+  /** Severity set via {@link Kensho#severity} (validated). */
+  public String severity = null;
+
+  /** Owner set via {@link Kensho#owner}. */
+  public String owner = null;
+
+  /** Description set via {@link Kensho#description}. */
+  public String description = null;
+
+  /** Explicitly marked flaky via {@link Kensho#flaky()}. Merged into the case as {@code flaky:true}. */
+  public boolean flaky = false;
+
+  /** Marked muted/known-issue via {@link Kensho#muted()} / {@link Kensho#knownIssue}. Merged as {@code muted:true}. */
+  public boolean muted = false;
+
   public CaseScratch(String caseId, long startedAtMs) {
     this.caseId = caseId;
     this.startedAtMs = startedAtMs;

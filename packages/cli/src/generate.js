@@ -19,10 +19,11 @@ import { gzipSync } from 'node:zlib';
 import { spawnSync } from 'node:child_process';
 import { validateRun, computeTotals } from '@kaizenreport/kensho-schema';
 import { loadCodeowners, ownersForPath } from './codeowners.js';
+import { enrichRun, loadCategoryRules } from './enrich.js';
 
 const require = createRequire(import.meta.url);
 
-export async function generate({ input, output, history, config: configPath, compress = true, codeownersPath, codeownersDisabled = false }) {
+export async function generate({ input, output, history, config: configPath, compress = true, codeownersPath, codeownersDisabled = false, snippets = true }) {
   const started = Date.now();
   if (!existsSync(input)) throw new Error(`input directory not found: ${input}`);
 
@@ -74,6 +75,15 @@ export async function generate({ input, output, history, config: configPath, com
       }
     }
   }
+
+  // --- 2c. Enrich failing cases (source snippet + failure category) -----
+  // Best-effort, never throws. Source snippets are read from the repo root
+  // (--no-snippets skips them); categories come from kensho.config.json
+  // rules first, else auto-clustered from the error message.
+  const categoryRules = loadCategoryRules(input);
+  enrichRun(run, { root: repoRoot, snippets, rules: categoryRules });
+  const enriched = run.testCases.filter(c => c.category).length;
+  const snippetHits = run.testCases.filter(c => c.sourceSnippet).length;
 
   // --- 3. Validate against schema ---------------------------------------
   const { ok, errors } = validateRun(run);
@@ -129,6 +139,7 @@ export async function generate({ input, output, history, config: configPath, com
       behavior: c.behavior,
       labels: c.labels,
       links: c.links,
+      category: c.category, flaky: c.flaky, muted: c.muted,
       // First error message preview — lets the Overview + Categories pages
       // categorize and show meaningful previews without reading every case.
       errorType: c.errors?.[0]?.type,
@@ -199,6 +210,9 @@ export async function generate({ input, output, history, config: configPath, com
   }
   if (co.file) {
     console.log(`[kensho] ✓ CODEOWNERS · ${relative(process.cwd(), co.file)} · ${codeownersHits} test${codeownersHits === 1 ? '' : 's'} matched`);
+  }
+  if (enriched || snippetHits) {
+    console.log(`[kensho] ✓ enriched · ${enriched} categorized · ${snippetHits} source snippet${snippetHits === 1 ? '' : 's'}`);
   }
   console.log(
     `[kensho] ✓ report written to ${relative(process.cwd(), output)}/ (${formatBytes(size)} · ${ms} ms)`,

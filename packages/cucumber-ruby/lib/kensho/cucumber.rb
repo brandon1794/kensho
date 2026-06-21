@@ -7,6 +7,8 @@
 
 require_relative '_schema'
 require_relative 'cucumber/version'
+require_relative 'cucumber/state'
+require_relative 'cucumber/helpers'
 require_relative 'cucumber/formatter'
 
 module Kensho
