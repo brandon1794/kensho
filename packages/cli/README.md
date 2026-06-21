@@ -16,6 +16,10 @@ npm i -D @kaizenreport/kensho
 | `kensho validate` | Schema-check `kensho-results/` against `kensho/v1`. |
 | `kensho badge`    | SVG badge (passrate / status / tests). |
 | `kensho diff`     | Compare two `kensho-results/` directories. |
+| `kensho merge`    | Union several `kensho-results/` dirs into one (sharded/monorepo runs). |
+| `kensho import-allure` | Convert an `allure-results/` directory to Kensho v1. |
+| `kensho summary`  | Markdown digest (totals + top-10 failures) for PRs / CI summaries. |
+| `kensho export-junit` | Emit a JUnit XML report from `kensho-results/`. |
 | `kensho login`    | Browser sign-in; persists creds for `kensho push`. |
 | `kensho push`     | Upload a run to the Kaizen platform. |
 | `kensho watch`    | Stream a *live* run to the platform as case files land on disk. |
@@ -144,6 +148,93 @@ The watcher:
 - If `kensho watch` is killed before any `run.json` lands on disk (e.g. the
   test process crashed mid-flight), it sends a synthesized minimal run with
   `abandoned: true` so the platform can mark the run accordingly.
+
+---
+
+## Failure enrichment at generate time
+
+`kensho generate` enriches **failing** cases (`fail` / `broken`) before it
+writes the report. Both passes are best-effort — they never fail the build:
+
+- **Source snippets.** For each failure, Kensho locates the failing
+  `filePath:line` (or the first in-repo frame in the error stack), reads ±6
+  lines of context, and stores them on `case.sourceSnippet`. Files are
+  resolved strictly inside the repo root (symlink/`..` escapes, missing files,
+  files over 2 MB, and binaries are skipped). Pass `--no-snippets` to turn
+  this off.
+- **Failure categories.** Each failure gets a `case.category`. If a
+  `kensho.config.json` (in the results dir or cwd) defines `categories` rules,
+  the first matching rule wins:
+
+  ```json
+  {
+    "categories": [
+      { "name": "Flaky network", "matchedStatuses": ["fail"], "messageRegex": "ECONNRESET|502|timeout" },
+      { "name": "Selector drift", "traceRegex": "locator|selector" }
+    ]
+  }
+  ```
+
+  Each rule may set `matchedStatuses`, `messageRegex`, and/or `traceRegex`.
+  When no rule matches, Kensho auto-clusters by a normalized signature of the
+  error message (digits, hex, quotes, paths, and UUIDs stripped) into shared
+  buckets like *Timeout*, *Network*, *Assertion*, *Element not found*, etc.
+
+`category`, `flaky`, and `muted` are carried into `data/index.json` so the
+viewer's Categories / Flaky boards work without reading every case file.
+
+---
+
+## Merge sharded runs — `kensho merge`
+
+```bash
+kensho merge ./results-chromium ./results-firefox ./results-webkit --out ./kensho-results
+```
+
+Unions every input's test cases into one results tree. Colliding case ids keep
+the first occurrence and suffix later ones (`<id>_2`, `<id>_3`, …); their
+attachments are copied and `relativePath`s remapped. Run metadata is folded
+together (earliest `startedAt`, latest `finishedAt`, summed `durationMs`,
+recomputed totals). The output passes `kensho validate`, so you can pipe it
+straight into `generate` or `push`.
+
+## Import from Allure — `kensho import-allure`
+
+```bash
+kensho import-allure ./allure-results --out ./kensho-results
+```
+
+Converts an `allure-results/` directory (the `*-result.json` files) to Kensho
+v1. Status, `statusDetails`, recursive steps, labels (epic/feature/story →
+behavior; severity/owner/tag/suite), links (issue/tms/link), parameters, and
+attachments (copied by basename) are all mapped. Case ids use
+`stableCaseId(fullName, filePath)` so imported runs correlate across history.
+
+## PR / CI summary — `kensho summary`
+
+```bash
+kensho summary ./kensho-results                 # Markdown to stdout
+kensho summary ./kensho-report --out summary.md # works on a generated report too
+kensho summary ./kensho-results --format gh     # appends to $GITHUB_STEP_SUMMARY
+```
+
+Prints a totals table plus the top-10 failures (with category + a one-line
+error preview). Accepts either a `kensho-results/` dir or a generated
+`kensho-report/` dir. With `--format gh` and no `--out`, it appends to the
+file in `$GITHUB_STEP_SUMMARY` so the digest shows up in the GitHub Actions job
+summary; otherwise it prints to stdout.
+
+## Export JUnit XML — `kensho export-junit`
+
+```bash
+kensho export-junit ./kensho-results --out ./junit.xml
+```
+
+Emits a standard `<testsuites>/<testsuite>/<testcase>` document for any JUnit
+consumer (GitLab, Jenkins, Bitbucket, GitHub reporters). `fail` → `<failure>`,
+`broken` → `<error>`, `skip` → `<skipped>`. All content is XML-escaped, stacks
+go in CDATA (with `]]>` split safely), and control characters are stripped so
+the document is always well-formed.
 
 ---
 
