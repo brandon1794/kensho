@@ -156,6 +156,14 @@ function buildRichTest(c, idx, runStartMs) {
     bdd: null,
     labels: c.labels || {},
     links: c.links || [],
+    // New optional v1 case fields — surfaced from the index summary when the
+    // generator carries them so the tree rows / Overview / Flaky board can
+    // badge single-run flagged tests without reading every case JSON. They
+    // also get refreshed from the full case in ensureCaseLoaded() below.
+    flaky: !!c.flaky,
+    muted: !!c.muted,
+    category: c.category || '',
+    sourceSnippet: c.sourceSnippet || null,
     error: (c.hasErrors || c.errorPreview) ? {
       kind: c.errorType || 'Error',
       message: c.errorPreview || '',
@@ -248,6 +256,31 @@ function deriveCategories(cases) {
       : 'var(--status-skipped)';
     if (!map.has(kind)) map.set(kind, { kind, family, color, count: 0, tests: [], description: describeKind(kind) });
     const e = map.get(kind);
+    e.count += 1;
+    e.tests.push(c.id);
+  }
+  return [...map.values()].sort((a, b) => b.count - a.count);
+}
+
+// Group cases by their explicit `case.category` bucket (config rule or
+// generator auto-clustering). This is independent from the error-type
+// derivation above and powers the "By category" view on the Categories page.
+// Returns [] when no case carries a category, so the page can degrade to the
+// error-type-only layout.
+function deriveCategoryGroups(cases) {
+  const map = new Map();
+  for (const c of cases) {
+    const cat = (c.category || '').trim();
+    if (!cat) continue;
+    const family = c.status === 'broken' ? 'broken'
+      : c.status === 'skip' ? 'skipped'
+      : (c.status === 'fail' ? 'failed' : 'passed');
+    const color = family === 'failed' ? 'var(--status-failed)'
+      : family === 'broken' ? 'var(--status-broken)'
+      : family === 'skipped' ? 'var(--status-skipped)'
+      : 'var(--status-passed)';
+    if (!map.has(cat)) map.set(cat, { kind: cat, family, color, count: 0, tests: [], description: 'Tests grouped under the “' + cat + '” category.' });
+    const e = map.get(cat);
     e.count += 1;
     e.tests.push(c.id);
   }
@@ -461,6 +494,7 @@ async function loadKenshoData(dataUrl, opts = {}) {
   const suiteTree = deriveSuiteTree(cases);
   const behaviorTree = deriveBehaviorTree(cases);
   const categories = deriveCategories(cases);
+  const categoryGroups = deriveCategoryGroups(cases);
   const timelineTests = deriveTimelineRows(cases, runStartMs);
   const trendRuns = deriveTrendRuns(idx.history, {
     short: (idx.runId || '').slice(-4) || idx.runId,
@@ -496,6 +530,12 @@ async function loadKenshoData(dataUrl, opts = {}) {
     if (!full) { richTest._stepsLoaded = true; return richTest; }
     richTest._full = full;
     richTest.description = full.description || richTest.description;
+    // Refresh the new optional fields from the authoritative full case.
+    if (full.flaky != null) richTest.flaky = !!full.flaky;
+    if (full.muted != null) richTest.muted = !!full.muted;
+    if (full.category) richTest.category = full.category;
+    if (full.sourceSnippet) richTest.sourceSnippet = full.sourceSnippet;
+    if (Array.isArray(full.links) && full.links.length) richTest.links = full.links;
     richTest.parameters = (full.parameters || []).map(p => [p.name, p.value]);
     if (full.behavior?.gherkin?.length) {
       const text = full.behavior.gherkin.join(' ');
@@ -525,6 +565,7 @@ async function loadKenshoData(dataUrl, opts = {}) {
     suiteTree,
     behaviorTree,
     categories,
+    categoryGroups,
     timelineTests,
     trendRuns,
     histogram,

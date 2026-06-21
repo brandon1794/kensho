@@ -279,11 +279,28 @@ function TimelinePage() {
 // ============== CATEGORIES PAGE — error-type classification ==============
 function CategoriesPage() {
   const ERROR_TYPES = window.CATEGORIES || [];
+  const CATEGORY_GROUPS = window.CATEGORY_GROUPS || [];
   const RICH_TESTS = window.RICH_TESTS || {};
 
-  const [selectedKind, setKind] = useStateP(ERROR_TYPES[0]?.kind ?? null);
+  // Two groupings: explicit case.category buckets (when the run carries them)
+  // and the error-type derivation. Default to category view when available
+  // since it's author-curated.
+  const hasCategories = CATEGORY_GROUPS.length > 0;
+  const [groupBy, setGroupBy] = useStateP(hasCategories ? 'category' : 'error');
+  const GROUPS = groupBy === 'category' && hasCategories ? CATEGORY_GROUPS : ERROR_TYPES;
 
-  if (ERROR_TYPES.length === 0) {
+  // Restore the selected category from the shareable hash (?cat=…) on mount.
+  const _hashCat = (window.__kvCurrentHashExtra ? window.__kvCurrentHashExtra().cat : '') || '';
+  const _initialKind = (_hashCat && GROUPS.some(g => g.kind === _hashCat)) ? _hashCat : (GROUPS[0]?.kind ?? null);
+  const [selectedKind, setKindRaw] = useStateP(_initialKind);
+  const setKind = React.useCallback((k) => {
+    setKindRaw(k);
+    if (window.__kvReplaceHashExtra) window.__kvReplaceHashExtra({ cat: k || '' });
+  }, []);
+  // When the grouping changes the previously selected kind may not exist.
+  React.useEffect(() => { setKind(GROUPS[0]?.kind ?? null); }, [groupBy]);
+
+  if (ERROR_TYPES.length === 0 && !hasCategories) {
     return (
       <div className="card" style={{ padding:30, textAlign:'center', color:'var(--fg3)', fontFamily:'var(--font-mono)', fontSize:13 }}>
         No failures in this run. Nothing to categorize.
@@ -291,27 +308,46 @@ function CategoriesPage() {
     );
   }
 
-  const sel = ERROR_TYPES.find(e => e.kind === selectedKind) || ERROR_TYPES[0];
-  const totalIssues = ERROR_TYPES.reduce((a,b) => a + b.count, 0);
+  const sel = GROUPS.find(e => e.kind === selectedKind) || GROUPS[0];
+  const totalIssues = GROUPS.reduce((a,b) => a + b.count, 0);
+  const subtitle = groupBy === 'category'
+    ? `Grouped by category · ${GROUPS.length} categories · ${totalIssues} tests`
+    : `Failures grouped by error type · ${GROUPS.length} types · ${totalIssues} tests`;
 
   return (
     <div>
-      <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom: 14 }}>
+      <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom: 14, gap:16, flexWrap:'wrap' }}>
         <div>
           <h1 className="k-h1" style={{ marginBottom:2 }}>Categories</h1>
-          <div className="k-meta">Failures grouped by error type · {ERROR_TYPES.length} types · {totalIssues} tests</div>
+          <div className="k-meta">{subtitle}</div>
         </div>
-        <div style={{ display:'flex', gap:6 }}>
-          <span className="badge b-failed"><span className="dot"></span>{ERROR_TYPES.filter(e=>e.family==='failed').reduce((a,b)=>a+b.count,0)} product</span>
-          <span className="badge b-broken"><span className="dot"></span>{ERROR_TYPES.filter(e=>e.family==='broken').reduce((a,b)=>a+b.count,0)} test-defects</span>
-          <span className="badge b-skipped"><span className="dot"></span>{ERROR_TYPES.filter(e=>e.family==='skipped').reduce((a,b)=>a+b.count,0)} environment</span>
+        <div style={{ display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
+          {hasCategories && (
+            <div style={{ display:'inline-flex', border:'1px solid var(--line)', borderRadius:8, overflow:'hidden' }}>
+              {[['category', 'By category'], ['error', 'By error type']].map(([id, label]) => (
+                <button key={id} onClick={() => setGroupBy(id)} style={{
+                  padding:'5px 12px', border:'none', cursor:'pointer',
+                  background: groupBy === id ? 'var(--brand-blue-500)' : 'var(--bg-elev)',
+                  color: groupBy === id ? '#fff' : 'var(--fg2)',
+                  fontFamily:'var(--font-body)', fontSize:12, fontWeight:600,
+                }}>{label}</button>
+              ))}
+            </div>
+          )}
+          {groupBy === 'error' && (
+            <div style={{ display:'flex', gap:6 }}>
+              <span className="badge b-failed"><span className="dot"></span>{ERROR_TYPES.filter(e=>e.family==='failed').reduce((a,b)=>a+b.count,0)} product</span>
+              <span className="badge b-broken"><span className="dot"></span>{ERROR_TYPES.filter(e=>e.family==='broken').reduce((a,b)=>a+b.count,0)} test-defects</span>
+              <span className="badge b-skipped"><span className="dot"></span>{ERROR_TYPES.filter(e=>e.family==='skipped').reduce((a,b)=>a+b.count,0)} environment</span>
+            </div>
+          )}
         </div>
       </div>
 
       <div className="card" style={{ marginBottom: 16 }}>
-        <div className="hd"><h3>Distribution by error type</h3><div className="meta">{totalIssues} test failures</div></div>
+        <div className="hd"><h3>Distribution by {groupBy === 'category' ? 'category' : 'error type'}</h3><div className="meta">{totalIssues} tests</div></div>
         <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-          {ERROR_TYPES.map(e => (
+          {GROUPS.map(e => (
             <div key={e.kind} style={{ display:'grid', gridTemplateColumns:'minmax(220px, 280px) 1fr 36px', alignItems:'center', gap:10 }}>
               <div style={{ display:'flex', alignItems:'center', gap:6, fontFamily:'var(--font-mono)', fontSize:12.5, color:'var(--fg1)' }}>
                 <span style={{ width:8, height:8, borderRadius:2, background:e.color, flexShrink:0 }}/>
@@ -328,7 +364,7 @@ function CategoriesPage() {
 
       <div style={{ display:'grid', gridTemplateColumns:'minmax(260px, 320px) 1fr', gap:0, background:'var(--bg-elev)', border:'1px solid var(--line)', borderRadius:12, overflow:'hidden', minHeight:480 }}>
         <div style={{ borderRight:'1px solid var(--line)' }}>
-          {ERROR_TYPES.map(e => (
+          {GROUPS.map(e => (
             <div key={e.kind} onClick={()=>setKind(e.kind)} style={{
               display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', gap:10, padding:'12px 14px',
               cursor:'pointer', borderLeft: selectedKind===e.kind ? `2px solid ${e.color}` : '2px solid transparent',
@@ -348,7 +384,7 @@ function CategoriesPage() {
         <div style={{ padding:24 }}>
           {sel && (
             <>
-              <div className="k-overline" style={{ marginBottom:6 }}>{sel.family} · error type</div>
+              <div className="k-overline" style={{ marginBottom:6 }}>{sel.family} · {groupBy === 'category' ? 'category' : 'error type'}</div>
               <h2 className="k-h2" style={{ fontSize:22, fontFamily:'var(--font-mono)', fontWeight:600, marginBottom:8 }}>{sel.kind}</h2>
               <p className="k-body" style={{ marginBottom:18 }}>{sel.description}</p>
 
@@ -419,14 +455,18 @@ function FlakyPage() {
   const allTests = Object.values(RICH_TESTS);
   const fmt = window._kenshoFmtDuration || (ms => ms + 'ms');
 
-  // Bucket every test into one of three flake categories (or none).
-  const buckets = { recovered: [], broken: [], failedWithRetries: [] };
+  // Bucket every test into one of the flake categories (or none). A test
+  // explicitly flagged flaky by the reporter (case.flaky → kensho.flaky())
+  // always surfaces here even on a clean single run; it's the highest-signal
+  // bucket since the author themselves marked it non-deterministic.
+  const buckets = { flagged: [], recovered: [], broken: [], failedWithRetries: [] };
   for (const t of allTests) {
-    if (t.retries > 0 && t.status === 'passed') buckets.recovered.push(t);
+    if (t.flaky) buckets.flagged.push(t);
+    else if (t.retries > 0 && t.status === 'passed') buckets.recovered.push(t);
     else if (t.status === 'broken') buckets.broken.push(t);
     else if (t.retries > 0 && (t.status === 'failed' || t.status === 'broken')) buckets.failedWithRetries.push(t);
   }
-  const flakeTotal = buckets.recovered.length + buckets.broken.length + buckets.failedWithRetries.length;
+  const flakeTotal = buckets.flagged.length + buckets.recovered.length + buckets.broken.length + buckets.failedWithRetries.length;
 
   const [filter, setFilter] = useStateP('all');
 
@@ -434,6 +474,7 @@ function FlakyPage() {
   // then broken, then failed-with-retries. Within each bucket, sort by retry
   // count desc so the highest-friction tests bubble up.
   const ALL_FLAKY = [
+    ...buckets.flagged.map(t => ({ ...t, _bucket:'flagged' })),
     ...buckets.recovered.map(t => ({ ...t, _bucket:'recovered' })),
     ...buckets.broken.map(t => ({ ...t, _bucket:'broken' })),
     ...buckets.failedWithRetries.map(t => ({ ...t, _bucket:'failedWithRetries' })),
@@ -497,6 +538,7 @@ function FlakyPage() {
 
   const FILTERS = [
     ['all', 'All flaky', flakeTotal],
+    ['flagged', 'Flagged', buckets.flagged.length],
     ['recovered', 'Recovered', buckets.recovered.length],
     ['broken', 'Broken', buckets.broken.length],
     ['failedWithRetries', 'Failed retry', buckets.failedWithRetries.length],
@@ -628,6 +670,7 @@ function FlakyStatCard({ accent, icon, label, value, desc, onClick }) {
 // FlakyTestRow — single affected test in the list.
 function FlakyTestRow({ test, index, selected }) {
   const BUCKET_META = {
+    flagged:          { color:'var(--brand-blue-500)', label:'FLAGGED FLAKY', pillBg:'var(--accent-soft)',        pillFg:'var(--brand-blue-500)',    icon:'activity' },
     recovered:        { color:'var(--status-broken)',  label:'RECOVERED',     pillBg:'var(--status-broken-bg)',  pillFg:'var(--status-broken-fg)',  icon:'rotate-ccw' },
     broken:           { color:'#7C5CFF',                label:'BROKEN',        pillBg:'rgba(124,92,255,0.15)',     pillFg:'#B69CFF',                   icon:'zap-off' },
     failedWithRetries:{ color:'var(--status-failed)',  label:'FAILED RETRY',  pillBg:'var(--status-failed-bg)',  pillFg:'var(--status-failed-fg)',  icon:'alert-triangle' },

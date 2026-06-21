@@ -16,6 +16,15 @@
 .sb .brand { display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--line); }
 .sb .brand .name { font-family:var(--font-display); font-weight:800; font-size:18px; color:var(--fg1); letter-spacing:-.01em; }
 .sb .brand .name .accent { color: var(--brand-green-400); }
+
+/* ------- THEME-AWARE BRAND MARK -------
+   Light theme shows the flat outlined SVG (logo-mark.svg); dark theme shows
+   the dark-tile PNG. Default (no data-theme / light) → light asset visible. */
+.kv-brand-mark { align-items:center; justify-content:center; line-height:0; }
+.kv-brand-mark .kv-mark-dark  { display:none; }
+.kv-brand-mark .kv-mark-light { display:inline-block; }
+html[data-theme="dark"] .kv-brand-mark .kv-mark-dark  { display:inline-block; }
+html[data-theme="dark"] .kv-brand-mark .kv-mark-light { display:none; }
 .sb nav { padding:10px 8px; display:flex; flex-direction:column; gap:2px; flex:1; }
 .sb a { display:flex; align-items:center; gap:12px; height:36px; padding:0 12px; border-radius:var(--r-md); color:var(--fg2); text-decoration:none; font-size:13px; font-weight:500; cursor:pointer; transition:background var(--dur-fast),color var(--dur-fast); }
 .sb a:hover { background:var(--bg-hover); color:var(--fg1); }
@@ -355,3 +364,52 @@ body, .app, .tb, .card, .sb, .runsel, .btn, .theme-toggle, .trow, .step, .log, .
               color var(--dur-base) var(--ease-out),
               border-color var(--dur-base) var(--ease-out);
 }
+
+/* =====================================================================
+   Viewer feature styles (Kensho 0.3) — Markdown, source snippet,
+   flaky/known-issue markers, Playwright trace. All kv-* namespaced and
+   theme-aware via the shared tokens.
+   ===================================================================== */
+
+/* ---- Markdown (case.description) ---- */
+.kv-md { font-family:var(--font-body); font-size:13px; color:var(--fg1); line-height:1.6; }
+.kv-md > :first-child { margin-top:0; }
+.kv-md > :last-child { margin-bottom:0; }
+.kv-md .kv-md-p { margin:0 0 10px; }
+.kv-md .kv-md-h { font-family:var(--font-display); font-weight:700; color:var(--fg1); line-height:1.25; margin:16px 0 8px; letter-spacing:-.01em; }
+.kv-md .kv-md-h1 { font-size:19px; }
+.kv-md .kv-md-h2 { font-size:17px; }
+.kv-md .kv-md-h3 { font-size:15px; }
+.kv-md .kv-md-h4, .kv-md .kv-md-h5, .kv-md .kv-md-h6 { font-size:13.5px; color:var(--fg2); }
+.kv-md a { color:var(--brand-blue-500); text-decoration:none; }
+.kv-md a:hover { text-decoration:underline; }
+.kv-md ul, .kv-md ol { margin:0 0 10px; padding-left:22px; }
+.kv-md li { margin:2px 0; }
+.kv-md .kv-md-code { font-family:var(--font-mono); font-size:12px; background:var(--bg-sunken); border:1px solid var(--line); border-radius:4px; padding:1px 5px; color:var(--fg1); }
+.kv-md .kv-md-pre { margin:0 0 12px; padding:12px 14px; background:var(--bg-sunken); border:1px solid var(--line); border-radius:8px; overflow:auto; }
+.kv-md .kv-md-pre code { font-family:var(--font-mono); font-size:12px; color:var(--fg1); white-space:pre; }
+.kv-md .kv-md-pre[data-lang]::before { content:attr(data-lang); display:block; font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--fg3); margin-bottom:8px; }
+
+/* ---- Source snippet ---- */
+.kv-snippet { border:1px solid var(--line); border-radius:8px; overflow:hidden; background:var(--bg-elev); }
+.kv-snippet-hd { display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--bg-sunken); border-bottom:1px solid var(--line); }
+.kv-snippet-file { font-family:var(--font-mono); font-size:11.5px; color:var(--fg2); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.kv-snippet-lang { font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--fg3); background:var(--bg-elev); border:1px solid var(--line); border-radius:3px; padding:1px 6px; }
+.kv-snippet-body { margin:0; padding:8px 0; overflow:auto; background:var(--bg-elev); }
+.kv-snippet-body code { display:block; font-family:var(--font-mono); font-size:12px; line-height:1.6; }
+.kv-snippet-row { display:grid; grid-template-columns:46px 1fr; }
+.kv-snippet-row--error { background:var(--status-failed-bg); }
+.kv-snippet-row--error .kv-snippet-gutter { color:var(--status-failed); font-weight:700; }
+.kv-snippet-row--error .kv-snippet-code { color:var(--status-failed-fg); }
+.kv-snippet-gutter { text-align:right; padding:0 12px 0 0; color:var(--fg4); user-select:none; -webkit-user-select:none; }
+.kv-snippet-code { padding:0 14px 0 0; color:var(--fg1); white-space:pre; }
+
+/* ---- Flaky / known-issue markers ---- */
+.kv-marker { display:inline-flex; align-items:center; gap:4px; font-family:var(--font-mono); font-size:11px; font-weight:700; letter-spacing:.02em; padding:2px 8px; border-radius:999px; text-decoration:none; border:1px solid transparent; line-height:1.3; }
+.kv-marker--sm { font-size:10px; padding:1px 6px; gap:3px; }
+.kv-marker--flaky { color:var(--brand-blue-500); background:var(--accent-soft); border-color:color-mix(in srgb, var(--brand-blue-500) 30%, transparent); }
+.kv-marker--muted { color:var(--status-broken-fg); background:var(--status-broken-bg); border-color:var(--status-broken-border); }
+a.kv-marker--muted:hover { filter:brightness(0.96); }
+
+/* ---- Playwright trace affordance ---- */
+.kv-trace { background:var(--bg-sunken); }

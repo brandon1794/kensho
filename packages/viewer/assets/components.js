@@ -42,7 +42,9 @@ const _KV_ICON_FALLBACKS = {
   'activity': '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
   'list-tree': '<path d="M21 12h-8"/><path d="M21 6H8"/><path d="M21 18h-8"/><path d="M3 6v4c0 1.1.9 2 2 2h3"/><path d="M3 10v6c0 1.1.9 2 2 2h3"/>',
   'package': '<path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
-  'history': '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>'
+  'history': '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>',
+  'shield-alert': '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/>',
+  'route': '<circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/>'
 };
 function _kvFallbackSvg(name, size) {
   const inner = _KV_ICON_FALLBACKS[name];
@@ -119,14 +121,30 @@ function Sidebar({
     className: "sb"
   }, /*#__PURE__*/React.createElement("div", {
     className: "brand"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "kv-brand-mark",
+    style: {
+      width: 28,
+      height: 28,
+      display: 'inline-flex'
+    }
   }, /*#__PURE__*/React.createElement("img", {
-    src: (window.__KENSHO_ASSETS_BASE || 'assets/') + 'kaizen-mark.svg',
+    className: "kv-mark-dark",
+    src: (window.__KENSHO_ASSETS_BASE || 'assets/') + 'kaizen-mark.png',
     alt: "",
     style: {
       width: 28,
       height: 28
     }
-  }), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("img", {
+    className: "kv-mark-light",
+    src: (window.__KENSHO_ASSETS_BASE || 'assets/') + 'logo-mark.svg',
+    alt: "",
+    style: {
+      width: 28,
+      height: 28
+    }
+  })), /*#__PURE__*/React.createElement("div", {
     className: "name",
     style: {
       display: 'inline-flex',
@@ -497,7 +515,16 @@ function TestRow({
       fontSize: 11,
       color: 'var(--status-broken)'
     }
-  }, "\u21BB ", test.retries, " retries") : null), /*#__PURE__*/React.createElement("div", {
+  }, "\u21BB ", test.retries, " retries") : null, test.flaky || test.muted ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      marginLeft: 8
+    }
+  }, /*#__PURE__*/React.createElement(KvMarker, {
+    flaky: test.flaky,
+    muted: test.muted,
+    links: test.links,
+    size: "sm"
+  })) : null), /*#__PURE__*/React.createElement("div", {
     className: "dur"
   }, test.duration), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
     className: `badge b-${test.status}`
