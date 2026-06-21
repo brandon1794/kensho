@@ -43,7 +43,7 @@
     }
   },
   "devDependencies": {
-    "@babel/core": "^7.29.7",
+    "@babel/core": "^8.0.1",
     "@babel/preset-react": "^7.27.1",
     "esbuild": "^0.24.0"
   },
