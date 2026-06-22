@@ -28,7 +28,7 @@ jobs:
         with:
           ruby-version: '3.3'
       - name: Configure RubyGems credentials (OIDC trusted publishing)
-        uses: rubygems/configure-rubygems-credentials@v2.0.0
+        uses: rubygems/configure-rubygems-credentials@v2.1.0
       - name: Build + push gems
         run: |
           set -e
